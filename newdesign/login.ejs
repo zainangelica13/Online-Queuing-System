@@ -1,0 +1,78 @@
+<!DOCTYPE HTML>
+<!--
+	Dimension by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Q-STI</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+				
+				<header id="head">
+				<h1 class="major">LOGIN</h1>
+					<form action="/send" method="POST">
+						<center>
+						<div class="fields" style="margin-top:15px">
+								<label for="Idd">Student Number</label>
+								<input type="text" name="studentID" id="Idd" onkeypress="return isNumber(event)" /> <br/>
+						</div>
+							<input type="submit" value="Login" class="primary" style="margin-top:15px" /> <br/>
+						</ul>
+						</center>
+					</form>
+				</header>
+				<!-- Main -->
+					<div id="main">
+						<article id="contact">
+						<center> 
+								<h2 class="major">Sign Up</h2>
+								<form action="/signup" method="POST">
+										<label for="Id">Student Number</label>
+										<input type="text" name="id" id="Id" /> <br/>
+										<label for="number">Contact Number</label>
+										<input type="text" name="number" id="number"> 
+										<input type="submit" value="Sign in" class="primary"  style="margin-top:15px"/>
+										<input type="reset" value="Reset" />
+								
+								</form>
+						</center>		
+						</article>
+					</div>
+
+				<!-- Footer -->
+					<footer id="footer">
+						<p class="copyright">&copy; Untitled. Design: <a href="https://html5up.net">STI STUDENTS</a>.</p>
+					</footer>
+
+			</div>
+
+		<!-- BG -->
+			<div id="bg"></div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+
+	</body>
+	<script type="text/javascript">
+		function isNumber(event){
+			var keycode	= event.keyCode;
+			if(keycode>47 && keycode<59){
+				return true;
+			}
+			return false;
+		}
+	</script>
+</html>
