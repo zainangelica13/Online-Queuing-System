@@ -1,5 +1,5 @@
 var app = new Vue({
-  el: '#appp',
+  el: '#app',
   data: {
     scanner: null,
     activeCameraId: null,
