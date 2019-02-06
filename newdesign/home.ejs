@@ -61,19 +61,58 @@
 								<center class="actions">
 								<h2 class="major">SLOT</h2>
 								<form method="post" action="/slot">
-									<input type="text" id="datepicker" name="dte">
-									<select name="table" style="margin-top:10px">
+									<input type="text" id="datepicker" name="dte" onblur="findSlot()">
+									<select name="tab" id="coun" style="margin-top:10px" onchange="findSlot()">
 										<option value="" selected disabled>Select Counter</option>
 										<option value="Enrollment">Enrollment</option>
 										<option value="Registrar">Registrar</option>
 										<option value="Cashier">Cashier</option>
 										<option value="Proware">Proware</option>
 									</select>
+									<table style="margin-top:40px;">
+										<tr>
+											<th>Reserved Slot</th>
+											<th>Available Slot</th>
+										  </tr>
+										  <tr>
+											<td id="td1"></td>
+											<td id="td2"></td> 
+										  </tr>
+									 </table>
 									<input type="submit" name="btn" value="Reserve" style="margin-top:10px"/>
 								</form>
 								</center>
+								
+								<script src="/socket.io/socket.io.js"></script>
+								<script>
+									function findSlot(){
+										var date = document.getElementById('datepicker').value;
+										var counters = document.getElementById('coun').value;
+										var socket = io();
+										//document.getElementById("td1").innerHTML = date;
+										//document.getElementById("td2").innerHTML = counters;
+										socket.on('connect', function() {
+										});
+										socket.on('showrows', function(rows) {
+											var dte = 0;
+											var avail = 20;
+											
+											for(var i = 0; i < rows.length; i++){
+												if(rows[i].date == date && rows[i].counter == counters){
+													dte++;
+													avail--;
+												}
+											}
+											
+											document.getElementById("td1").innerHTML = dte;
+											document.getElementById("td2").innerHTML = avail;
+											socket.emit('rows', showrows);
+										});
+									}
+									
+										
+								</script>
 							</article>
-
 					</div>
 
 				<!-- Footer -->
