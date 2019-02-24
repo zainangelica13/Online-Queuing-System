@@ -13,6 +13,10 @@
 		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
 		<link rel="stylesheet" href="calendar/css/pikaday.css">
 		<link rel="stylesheet" href="calendar/css/site.css">
+		<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+		<script src="https://npmcdn.com/js-alert/dist/jsalert.min.js"></script>
+		
+		
 	</head>
 	<body class="is-preload">
 
@@ -35,7 +39,7 @@
 							<ul>
 								<li><a href="#counter">Get Ticket number</a></li>
 								<li><a href="#slot" >Slot Reservation</a></li>
-								<li><a href="/logout" >Logout</a></li>	
+								<li><a href="/logout" id="nav-logout">Logout</a></li>	
 							</ul>
 						</nav>
 					</header>
@@ -61,7 +65,7 @@
 								<center class="actions">
 								<h2 class="major">SLOT</h2>
 								<form method="post" action="/slot">
-									<input type="text" id="datepicker" name="dte" onblur="findSlot()">
+									<input type="text" id="datepicker" name="dte">
 									<select name="tab" id="coun" style="margin-top:10px" onchange="findSlot()">
 										<option value="" selected disabled>Select Counter</option>
 										<option value="Enrollment">Enrollment</option>
@@ -79,7 +83,7 @@
 											<td id="td2"></td> 
 										  </tr>
 									 </table>
-									<input type="submit" name="btn" value="Reserve" style="margin-top:10px"/>
+									<input type="submit" id="reserve" name="btn" value="Reserve" style="margin-top:10px"/>
 								</form>
 								</center>
 								
@@ -89,21 +93,18 @@
 										var date = document.getElementById('datepicker').value;
 										var counters = document.getElementById('coun').value;
 										var socket = io();
-										//document.getElementById("td1").innerHTML = date;
-										//document.getElementById("td2").innerHTML = counters;
+										var dte = 0;
+										var avail = 20;
 										socket.on('connect', function() {
 										});
 										socket.on('showrows', function(rows) {
-											var dte = 0;
-											var avail = 20;
-											
+											var html='';
 											for(var i = 0; i < rows.length; i++){
-												if(rows[i].date == date && rows[i].counter == counters){
+												if(rows[0].date == date && rows[0].counter == counters){
 													dte++;
 													avail--;
 												}
-											}
-											
+											} 
 											document.getElementById("td1").innerHTML = dte;
 											document.getElementById("td2").innerHTML = avail;
 											socket.emit('rows', showrows);
@@ -148,6 +149,76 @@
 				});
 				
 			</script>
-
 	</body>
+		 <script type="text/javascript">
+			$(document).ready(function() {
+			var allow = false;
+			
+			$("#nav-logout").click(function(e) {
+				  e.preventDefault()
+					swal({
+						title : "",
+						text : "Would you like to log out from the system?",
+						type : "warning",
+						showCancelButton: true,
+						confirmButtonText: "Yes",
+				   },
+					function(isConfirm){
+					  if (isConfirm) {
+						  $.ajax({
+							type: 'post',
+							url: 'http://localhost:3000/logout/',
+							dataType: 'json',
+							data: formData
+							})
+							.done(function(data) {
+									allow = data.allow;
+									$('#login').click();
+							})
+							.fail(function(jqXHR, textStatus, err) {
+								swal ( "Oops" ,  "Error" ,  "error" )
+								console.log('Error');
+							});
+					  } else {
+							alert("Cancelled");
+					  }
+						})
+			});
+
+			$('#reserve').click(function(e){
+				if(allow == false) {
+					e.preventDefault();			
+					var formData = {
+						dte : $('#datepicker').val(),
+						tab : $('#coun option:selected').val();,
+						validator : allow
+					};
+					if ($('#datepicker').val() == '' || $('#coun').val() == '') {
+						swal ( "Oops" ,  "Please choose your date and your counter!" ,  "warning" )
+					} else {						
+						$.ajax({
+							type: 'post',
+							url: 'http://localhost:3000/slot/',
+							dataType: 'json',
+							data: formData
+						})
+						.done(function(data) {
+							if (data.allow == false) {
+								swal ( "Oops" ,  data.msg ,  "warning" )
+							} else {
+								allow = data.allow;
+								$('#login').click();
+							}
+						})
+						.fail(function(jqXHR, textStatus, err) {
+							swal ( "Oops" ,  "Error" ,  "error" )
+							console.log('Error');
+						});
+					}
+				}
+			});
+
+		});
+
+			</script>
 </html>
