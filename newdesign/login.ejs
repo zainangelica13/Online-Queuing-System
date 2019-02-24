@@ -10,7 +10,8 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
-		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+		<script src="https://npmcdn.com/js-alert/dist/jsalert.min.js"></script>
+		<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 	</head>
 	<body class="is-preload">
 
@@ -22,10 +23,12 @@
 					<form action="/send" method="POST">
 						<center>
 						<div class="fields" style="margin-top:15px">
-								<label for="Idd">Student Number</label>
-								<input type="text" name="studentID" id="Idd" onkeypress="return isNumber(event)" /> <br/>
+								<label for="studentID">Student Number</label>
+								<input type="text" name="studentID" id="studentID" onkeypress="return isNumber(event)" /> <br/>
+								<% var msg = msg %>
+								<p style="color:red; text-align: left;margin: 16px 5px;" ><%= msg %></p>
 						</div>
-							<input type="submit" value="Login" class="primary" style="margin-top:15px"/> <br/>
+							<input type="submit" id="login" value="Login" class="primary" style="margin-top:15px"/> <br/>
 						</ul>
 						</center>
 					</form>
@@ -76,4 +79,44 @@
 			return false;
 		}
 	</script>
+	
+	 <script type="text/javascript">
+		$(document).ready(function() {
+			var allow = false;
+
+			$('#login').click(function(e){
+				if(allow == false) {
+					e.preventDefault();			
+					var formData = {
+						studentID : $('#studentID').val(),
+						validator : allow
+					};
+					if ($('#studentID').val() == '') {
+						swal ( "Oops" ,  "Please enter your Student ID number!" ,  "warning" )
+					} else {						
+						$.ajax({
+							type: 'post',
+							url: 'http://localhost:3000/send/',
+							dataType: 'json',
+							data: formData
+						})
+						.done(function(data) {
+							if (data.allow == false) {
+								swal ( "Oops" ,  data.msg ,  "warning" )
+							} else {
+								allow = data.allow;
+								$('#login').click();
+							}
+						})
+						.fail(function(jqXHR, textStatus, err) {
+							swal ( "Oops" ,  "Error" ,  "error" )
+							console.log('Error');
+						});
+					}
+				}
+			});
+
+		});
+
+	</script> 
 </html>
