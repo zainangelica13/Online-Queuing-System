@@ -1,0 +1,122 @@
+<!DOCTYPE HTML>
+<!--
+	Dimension by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Q-STI</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/webrtc-adapter/3.3.3/adapter.min.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.1.10/vue.min.js"></script>
+		<script type="text/javascript" src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
+		<script type="text/javascript" src="qrcode/instascan.min.js"></script>
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Header -->
+					<header id="header">
+						<div class="logo">
+							<span> <img src="sti.png" alt="STI College Icon" style="margin-top: 20px;" width="78px" height="40"> </span>
+						</div>
+						<div class="content">
+							<div class="inner">
+								<h1>QUEUING LINE</h1>
+								<h3> queue line number </h3>
+								<article id="join">
+						
+								<div id="app">
+								  <div class="preview-container">
+									<video id="preview"></video>
+									
+								  </div>
+								</div>
+			
+							</article>
+							</div>
+						</div>
+						<nav>
+							<ul>
+								<li><a href="/join">Join Queue Line</a></li>
+								<li><a href="/join">Join Queue Line</a></li>
+								<li><a href="/join">logout</a></li>
+							</ul>
+						</nav>
+					</header>
+
+				<!-- Main -->
+					<div id="main">
+						<!-- Queue Line -->
+							
+					</div>
+
+				<!-- Footer -->
+					<footer id="footer">
+						<p class="copyright">&copy; Untitled. Design: <a href="https://html5up.net">STI STUDENTS</a>.</p>
+					</footer>
+
+			</div>
+
+		<!-- BG -->
+			<div id="bg"></div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+			
+
+	</body>
+			<script type="text/javascript" src="./app.js"></script>
+	
+			<script src="qrcode/jquery.js"></script>
+			<script src="qrcode/jsqrcode-combined.js"></script>
+			<script src="qrcode/html5-qrcode.js"></script>
+					<script>
+			$(document).ready(function() {
+				$("#scan").on('click', function() {
+					$("code").html('scanning');
+					$('#qr').html5_qrcode(function(data){
+							 // do something when code is read
+							 $(".feedback").html('code scanned as: ' +data);
+						},
+						function(error){
+							//show read errors 
+							$(".feedback").html('Unable to scan the code! Error: ' +error)
+						}, function(videoError){
+							//the video stream could be opened
+							$(".feedback").html('Video error');
+						}
+					);
+
+					$("#scan").addClass('disabled');
+					$("#stop").removeClass('disabled');
+					$("#change").removeClass('disabled');
+				});
+				$("#stop").on('click', function() {
+					$("#qr").html5_qrcode_stop();
+					$("code").html('Start Scanning');
+
+					$("#scan").removeClass('disabled');
+					$("#stop").addClass('disabled');
+					$("#change").addClass('disabled');
+				});
+				$("#change").on('click', function() {
+					$("#qr").html5_qrcode_changeCamera();
+
+					$("#scan").addClass('disabled');
+					$("#stop").removeClass('disabled');
+				});
+			});
+				
+			</script>
+</html>

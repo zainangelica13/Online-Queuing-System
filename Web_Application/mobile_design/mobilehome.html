@@ -1,0 +1,148 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Online Queuing System</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+
+	</head>
+	<body>
+
+		<!-- Header -->
+			<header id="header" class="alt">
+				<div class="logo"><a href="index.html"><img src="sti.png" alt="STI College Icon" style="margin-top: 5px;" width="100" height="46"></a></div>
+				<a href="#menu">Menu</a>
+			</header>
+
+		<!-- Nav -->
+			<nav id="menu">
+				<ul class="links">
+					<li><a href="index.html">Home</a></li>
+					<li><a href="generic.html">About</a></li>
+					<li><a href="/logout">Logout</a></li>
+				</ul>
+			</nav>
+			
+			<!-- One -->
+			<section id="one" class="wrapper style2">
+				<div class="inner">
+					<div class="grid-style">
+						<div>
+							<div class="box">
+								<div class="image fit">
+									<img src="images/getticket.jpg" alt="" />
+								</div>
+								<div class="content">
+									<header class="align-center">
+										<p>cashier enrollment proware registrar </p>
+										<h2>Appoint Now</h2>
+									</header>
+									<footer class="align-center">
+										<a href="#openModal" class="button alt">Get Ticket</a>
+									</footer>
+								</div>
+							</div>
+						</div>
+
+						<div>
+							<div class="box">
+								<div class="image fit">
+									<img src="images/Appointment.jpg" alt="" />
+								</div>
+								<div class="content">
+									<header class="align-center">
+										<p>cashier enrollment proware registrar </p>
+										<h2>Schedule an Appointment</h2>
+									</header>
+									<footer class="align-center">
+										<a href="#" class="button alt">Reserve Slot</a>
+									</footer>
+								</div>
+							</div>
+						</div>
+
+					</div>
+				</div>
+			</section>
+			
+			
+
+			<div id="openModal" class="modalDialog">
+				<div style="text-align: center">
+					<a href="#close" title="Close" class="close">X</a>
+					<div id="qr" style="display: inline-block; width: 360px; height: 250px; border: 1px solid silver"></div>
+					<br>
+
+						<button id="scan" class="btn btn-success btn-sm">start scaning</button>
+						<button id="stop" class="btn btn-warning btn-sm disabled">stop scanning</button>
+						<button id="change" class="btn btn-warning btn-sm disabled">change camera</button>
+					<br>
+					<div class="row">
+						<div class="col-md-12">
+							<code>Start Scanning</code> <span class="feedback"></span>
+						</div>
+					</div>
+				</form>
+				</div>
+			</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/skel.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+			
+		
+
+	</body>
+	
+	<script src="./jquery.js"></script>
+	<script src="./jsqrcode-combined.js"></script>
+	<script src="./html5-qrcode.js"></script>
+					<script>
+					$(document).ready(function() {
+						$("#scan").on('click', function() {
+							$("code").html('scanning');
+							$('#qr').html5_qrcode(function(data){
+									 // do something when code is read
+									 $(".feedback").html('code scanned as: ' +data);
+								},
+								function(error){
+									//show read errors 
+									$(".feedback").html('Unable to scan the code! Error: ' +error)
+								}, function(videoError){
+									//the video stream could be opened
+									$(".feedback").html('Video error');
+								}
+							);
+
+							$("#scan").addClass('disabled');
+							$("#stop").removeClass('disabled');
+							$("#change").removeClass('disabled');
+						});
+						$("#stop").on('click', function() {
+							$("#qr").html5_qrcode_stop();
+							$("code").html('Start Scanning');
+
+							$("#scan").removeClass('disabled');
+							$("#stop").addClass('disabled');
+							$("#change").addClass('disabled');
+						});
+						$("#change").on('click', function() {
+							$("#qr").html5_qrcode_changeCamera();
+
+							$("#scan").addClass('disabled');
+							$("#stop").removeClass('disabled');
+						});
+					});
+						
+					</script>
+					<script>
+						$('.btn-triger').click(function(){
+						  $(this).closest('.float-btn-group').toggleClass('open');
+						});
+					</script>
+					
+</html>
