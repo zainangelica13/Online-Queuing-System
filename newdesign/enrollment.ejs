@@ -30,17 +30,18 @@
 								<h2 id="line"> <%= rel %> </h2>
 								<h2>QUEUING LINE</h2>
 								<h1 style="color:yellow;" id = "rell"> </h3>
-								
 								<script src="/socket.io/socket.io.js"></script>
 								<script>
 								  var btn = "<%= rel %>";
 								  var socket = io();
+								  var s="";
 								  
 								  if(btn == "Cashier") {
 									socket.on('connect', function() {
 									});
 									socket.on('currentc', function({ row, current, queue }) {
 										document.getElementById("rell").innerHTML = row;
+										s += row;
 										socket.emit('row, current, queue', currentc);
 									});
 								  }
@@ -49,6 +50,7 @@
 									});
 									socket.on('currente', function({ row, current, queue }) {
 										document.getElementById("rell").innerHTML = row;
+										s += row;
 										socket.emit('row, current, queue', currente);
 									});
 								  }
@@ -57,6 +59,7 @@
 									});
 									socket.on('currentp', function({ row, current, queue }) {
 										document.getElementById("rell").innerHTML = row;
+										s += row;
 										socket.emit('row, current, queue', currentp);
 									});
 								  }
@@ -65,17 +68,17 @@
 									});
 									socket.on('currentr', function({ row, current, queue }) {
 										document.getElementById("rell").innerHTML = row;
+										s += row;
 										socket.emit('row, current, queue', currentr);
 									});
 								  }
-								  var line = document.getElementById("rell").innerHTML;
 								</script>
 							</div>
 						</div>
 						<nav>
 							<ul>
 								<li><a href="#join">Join</a></li>
-								<li><a href="/back?cnl=<%= rel %>&" onclick="this.href+='counter='+line;">Cancel</a></li>
+								<li><a href="/back">Cancel</a></li>
 							</ul>
 						</nav>
 					</header>
