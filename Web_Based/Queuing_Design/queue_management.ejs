@@ -1,0 +1,163 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Online Queuing System</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="description" content="" />
+		<meta name="keywords" content="" />
+		<!--[if lte IE 8]><script src="js/html5shiv.js"></script><![endif]-->
+		<script src="js/jquery.min.js"></script>
+		<script src="js/skel.min.js"></script>
+		<script src="js/skel-layers.min.js"></script>
+		<script src="js/init.js"></script>
+		<script src="js/jquery-confirm.js"></script>
+
+		<noscript>
+			<link rel="stylesheet" href="css/skel.css" />
+			<link rel="stylesheet" href="css/style.css" />
+			<link rel="stylesheet" href="css/style-xlarge.css" />
+		</noscript>
+		<link rel="stylesheet" href="css/jquery-confirm.css" />
+
+		<style type="text/css">
+			.jc-bs3-container{
+				text-align: center;
+			}
+
+			.jc-bs3-row{
+				display: inline-block;
+				text-align: left;
+			}
+		</style>
+	</head>
+	<body id="top">
+
+		<!-- Header -->
+			<header id="header" class="skel-layers-fixed">
+				<h1><a href="#"> <img src="sti.png" alt="STI College Icon" style="height:44px"> </a></h1> <br>
+				<nav id="nav">
+					<ul>
+						<li><a href="/home">Home</a></li>
+						<li><a href="/" class="button special" id="logout">Log Out</a></li>
+					</ul>
+				</nav>
+			</header>
+
+		
+		<!-- One -->
+		<form action="/print" method="POST" id="print_form">
+			<div style="text-align: center" class="container">
+				<div style="display: inline-block; margin-top: 25px;" class="row">
+					<div id="qr_canvas">
+						<div id="qrcode" style="border: 1px black solid; width: 256px; height: 256px;"></div>
+						<div id="button_canvas">
+						<input type="hidden" name="qr_code"> <label id="qr_val" style="height: 25px;"></label>
+						<input id="generate" type="button" value="Generate QR Code"><br><br>
+						<input type="submit" value="print a qr!" id='print'/>
+						</div>
+					</div>
+					
+				</div>
+			</div>
+		</form>
+
+		<div id="div1">
+			<div id="printableArea">
+				<div id="qrcodeCanvas"></div>
+			</div>
+		</div>
+
+
+<script type="text/javascript" src="js/jquery.qrcode.min.js"></script>
+<script type="text/javascript" src="js/qrcode.js"></script>
+
+<script type="text/javascript">
+	$(document).ready(function() {
+
+		var code_checker = "";
+
+		$('#generate').click(function(){
+
+			var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZ";
+			var string_length = 10;
+			var randomstring = '';
+			for (var i=0; i<string_length; i++) {
+				var rnum = Math.floor(Math.random() * chars.length);
+				randomstring += chars.substring(rnum,rnum+1);
+			}
+			
+			var code= randomstring;
+			code_checker=code;
+			$('#qr_val').text(code);
+			$('#qrcode').empty();
+			$('#qrcode').qrcode(code);	
+			$('#qrcode').css('border', 'none');
+			$('[name="qr_code"]').val(code);	
+		});
+
+		$('#print').click(function(e) {
+			e.preventDefault();
+
+			if (code_checker != ""){
+				$('#print_form').submit();
+			} else {
+				
+				$.alert({
+				    title: 'Error!',
+				    content: 'Please generate QR CODE first.',
+				    icon: 'fa fa-warning',
+					type: 'blue',
+				    buttons: {
+				    	Okay:{
+					    	text: 'Okay',
+					    	btnClass:'btn-blue',
+					    	keys:['esc','space']
+					    }	
+				    }
+				});
+			}
+		});
+
+		var allow=false;
+
+		$('#logout').click(function(e) {
+
+			if (!allow) {
+				e.preventDefault();
+
+				$.confirm({
+				    title: 'Confirmation',
+				    content: 'Are you sure you want to log out?',
+				    icon: 'fa fa-warning',
+				    type: 'blue',
+				    buttons: {
+				        Yes: {
+				        	text:'Yes',
+				        	btnClass:'btn-blue',
+				        	keys:['space'],
+				        	action: function(){
+				        		allow=true;
+				        		console.log(allow);
+		        				$('#logout').click();
+				        	}
+				        },
+				        Cancel:{
+				        	text:'Cancel',
+				        	btnClass:'btn-dark',
+				        	keys:['esc'],
+				        	action: function(){
+				        		console.log('canceled')
+				        	}
+				        }
+				    }
+				});
+			} else {
+				window.location.href = '/';
+			}
+		});
+
+	});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Online Queuing System</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="description" content="" />
+		<meta name="keywords" content="" />
+		<!--[if lte IE 8]><script src="js/html5shiv.js"></script><![endif]-->
+		<script src="js/jquery.min.js"></script>
+		<script src="js/skel.min.js"></script>
+		<script src="js/init.js"></script>
+		<noscript>
+			<link rel="stylesheet" href="css/skel.css" />
+			<link rel="stylesheet" href="css/style.css" />
+			<link rel="stylesheet" href="css/style-xlarge.css" />
+		</noscript>
+	</head>
+	<body id="top">
+
+			<header id="header" class="skel-layers-fixed">
+				<h1><a href="#"> <img src="sti.png" alt="STI College Icon" style="margin-top: 5px;" width="100" height="46"> </a></h1> <br>
+			</header>
+
+			<section id="one" class="wrapper style1">
+				<header class="major">
+					<h2>SIGN UP</h2>
+				</header>
+				<div style="text-align: center" class="container">
+					<div style="display: inline-block; width: 450px;" class="row">
+						<div class="12u">
+							<section class="special box">
+								<i class="icon fa-user major"></i>
+								<form action="/back" method="POST" id="sign-up">
+									<input type="text" id="id_no" name="id_no" placeholder="ID number"/>
+									<input type="text" id="name" name="name" placeholder="Full Name"/>		
+									<input type="text" id="designation" name="designation" placeholder="Designation"/>	
+									<input style="margin-top: 5px" type="text" id="pass" name="pass" placeholder="Password"/> <br>
+									<input type="submit" id="register" name="button" value="Sign up"/>
+								</form>
+							</section>
+						</div>
+						
+					</div>
+				</div>
+			</section>
+
+			<script type="text/javascript">
+				$(document).ready(function() {
+					// Contents
+					var allow = false;
+					$('#register').on('click',function(e) {
+						if (!allow) {
+							e.preventDefault();
+
+							var id_no = $('#id_no').val();
+							var name = $('#name').val();
+							var designation = $('#designation').val();
+							var pass = $('#pass').val();
+
+							if (id_no == '' || name == ''||designation == '' || pass == '') {
+								alert('Please fill empty textboxes');
+							} else {
+								allow = true;
+								$('#register').click();
+							}
+						}
+					});
+				});
+			</script>
+	</body>
+</html>
