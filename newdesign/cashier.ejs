@@ -11,6 +11,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
 		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+		<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 	</head>
 	<body class="is-preload">
 
@@ -24,6 +25,7 @@
 						</div>
 						<div class="content">
 							<div class="inner">
+								<h2 id="textid"> </h2>
 								<h2>Your queue number: </h2>
 								<h1 style="color:yellow;" id="own">  </h1>
 								<h2>Current Number: </h2>
@@ -31,69 +33,21 @@
 							</div>
 							<script src="/socket.io/socket.io.js"></script>
 								<script>
-								  var btn = "<%= rel %>";
-								  var socket = io();
 								  
-								  if(btn == "Cashier") {
-									socket.on('connect', function() {
-									});
-									socket.on('currentc', function({ row, current, queue }) {
-										document.getElementById("own").innerHTML = queue;
-										document.getElementById("current").innerHTML = current;
-										socket.emit('row, current, queue', currentc);
-									});
-								  }
-								  else if(btn == "Enrollment") {
-									socket.on('connect', function() {
-									});
-									socket.on('currente', function({ row, current, queue }) {
-										document.getElementById("own").innerHTML = queue;
-										document.getElementById("current").innerHTML = current;
-										socket.emit('row, current, queue', currente);
-									});
-								  }
-								  else if(btn == "Proware") {
-									socket.on('connect', function() {
-									});
-									socket.on('currentp', function({ row, current, queue }) {
-										document.getElementById("own").innerHTML = queue;
-										document.getElementById("current").innerHTML = current;
-										socket.emit('row, current, queue', currentp);
-									});
-								  }
-								  else{
-									socket.on('connect', function() {
-									});
-									socket.on('currentr', function({ row, current, queue }) {
-										document.getElementById("own").innerHTML = queue;
-										document.getElementById("current").innerHTML = current;
-										socket.emit('row, current, queue', currentr);
-									});
-								  }
 								</script>
 						</div>
 						<nav>
 							<ul>
-								<li><a href="/cancel?cnl=queue">Cancel Queueing</a></li>
-								<li><a href="#slot">Slot Reservation</a></li>
+								<li><a href="/cancel" onclick="location.href=this.href+'?cnl=<%= rel %>&counter='+s;return false;">Cancel</a></li>
+								<li><a id="a1" href="/transactiondone" onclick="location.href=this.href+'?cnl=<%= rel %>';return false;">Next</a></li>
+								<li><a id="a2" href="/home">Done</a></li>
 							</ul>
 						</nav>
 					</header>
 
 				<!-- Main -->
 					<div id="main">
-						<!-- Slot -->
-							<article id="slot">
-								<center class="actions">
-								<h2 class="major">Counter</h2>
-								<form method="post" action="/slot">
-										<button type="submit" class="primary" style="margin-top:5px; width: 50%" value="Enrollment" name="Ticket"> Enrollment </button> <br/>
-										<button type="submit" class="primary" style="margin-top:5px; width: 50%" value="Registrar" name="Ticket"> Registrar </button> <br/>
-										<button type="submit" class="primary" style="margin-top:5px; width: 50%" value="Cashier" name="Ticket"> Cashier </button> <br/>
-										<button type="submit" class="primary" style="margin-top:5px; width: 50%" value="Proware" name="Ticket"> Proware </button> <br/>
-								</form>
-								</center>
-							</article>
+						
 					</div>
 
 				<!-- Footer -->
@@ -116,4 +70,224 @@
 			<script  src="js/index.js"></script>
 
 	</body>
+	
+	<script type="text/javascript">
+		$(document).ready(function() {
+			auto_refresh();
+		});
+		function auto_refresh(){
+			var randomnumber = Math.floor(Math.random() * 100);
+			var btn = "<%= rel %>";
+			var socket = io();
+			var s = "";
+			var c = "";
+								  
+			if(btn == "cashier") {
+				socket.on('connect', function() {
+				});
+					socket.on('currentc', function({ row, current, queue }) {
+					document.getElementById("own").innerHTML = queue;
+					document.getElementById("current").innerHTML = current;
+					s += queue;
+					c += current;
+					var temp = s - 5;
+					var tmp = s - 2;
+											
+					if (s > 5){
+						if(c == temp){
+							socket.on('text', function(text) {
+								socket.emit('text', text);
+							});
+						}
+						if(c == tmp) {
+							socket.on('text', function(text) {
+								socket.emit('text', text);
+							});
+						}
+					}
+					if (c < s){
+						document.getElementById('a1').style.display='none';
+						document.getElementById('a2').style.display='none';
+					} 
+					if(c >= s){
+						document.getElementById('a1').style.display='inline';
+						document.getElementById('a2').style.display='inline';
+					}
+					
+					if(c == temp){
+						$( document ).ready(function() {
+							swal ( "Be patient" ,  "You are 5 in a row!" ,  "success" )
+						});						
+					}
+					if(c == tmp) {
+						$( document ).ready(function() {
+							swal ( "Be patient" ,  "You are near!" ,  "success" )
+						});
+					}
+					if(c == s){
+						$( document ).ready(function() {
+							swal ( "Congrats" ,  "It's your turn!" ,  "success" )
+						});
+					}
+					socket.emit('row, current, queue', currentc);
+				});
+			}
+			else if(btn == "enrollment") {
+				socket.on('connect', function() {
+				});
+				socket.on('currente', function({ row, current, queue }) {
+					document.getElementById("own").innerHTML = queue;
+					document.getElementById("current").innerHTML = current;
+					s += queue;
+					c += current;
+					
+					var temp = s - 5;
+					var tmp = s - 2;
+											
+					if (s > 5){
+						if(c == temp){
+							socket.on('text', function(text) {
+								socket.emit('text', text);
+							});
+						}
+						if(c == tmp) {
+							socket.on('text', function(text) {
+								socket.emit('text', text);
+							});
+						}
+					}
+					if (c < s){
+						document.getElementById('a1').style.display='none';
+						document.getElementById('a2').style.display='none';
+					} 
+					if(c >= s){
+						document.getElementById('a1').style.display='inline';
+						document.getElementById('a2').style.display='inline';
+					}
+					
+					if(c == temp){
+						$( document ).ready(function() {
+							swal ( "Be patient" ,  "You are 5 in a row!" ,  "success" )
+						});						
+					}
+					if(c == tmp) {
+						$( document ).ready(function() {
+							swal ( "Be patient" ,  "You are near!" ,  "success" )
+						});
+					}
+					if(c == s){
+						$( document ).ready(function() {
+							swal ( "Congrats" ,  "It's your turn!" ,  "success" )
+						});
+					}
+					
+					socket.emit('row, current, queue', currente);
+				});
+			}
+			else if(btn == "proware") {
+				socket.on('connect', function() {
+				});
+				socket.on('currentp', function({ row, current, queue }) {
+					document.getElementById("own").innerHTML = queue;
+					document.getElementById("current").innerHTML = current;
+					s += queue;
+					c += current;
+					var temp = s - 5;
+					var tmp = s - 2;
+											
+					if (s > 5){
+						if(c == temp){
+							socket.on('text', function(text) {
+								socket.emit('text', text);
+							});
+						}
+						if(c == tmp) {
+							socket.on('text', function(text) {
+								socket.emit('text', text);
+							});
+						}
+					}
+					if (c < s){
+						document.getElementById('a1').style.display='none';
+						document.getElementById('a2').style.display='none';
+					} 
+					if(c >= s){
+						document.getElementById('a1').style.display='inline';
+						document.getElementById('a2').style.display='inline';
+					}
+					
+					if(c == temp){
+						$( document ).ready(function() {
+							swal ( "Be patient" ,  "You are 5 in a row!" ,  "success" )
+						});						
+					}
+					if(c == tmp) {
+						$( document ).ready(function() {
+							swal ( "Be patient" ,  "You are near!" ,  "success" )
+						});
+					}
+					if(c == s){
+						$( document ).ready(function() {
+							swal ( "Congrats" ,  "It's your turn!" ,  "success" )
+						});
+					}
+					socket.emit('row, current, queue', currentp);
+				});
+			}
+			else{
+				socket.on('connect', function() {
+				});
+				socket.on('currentr', function({ row, current, queue }) {
+					document.getElementById("own").innerHTML = queue;
+					document.getElementById("current").innerHTML = current;
+					s += queue;
+					c += current;
+					var temp = s - 5;
+					var tmp = s - 2;
+											
+					if (s > 5){
+						if(c == temp){
+							socket.on('text', function(text) {
+								socket.emit('text', text);
+							});
+						}
+						if(c == tmp) {
+							socket.on('text', function(text) {
+								socket.emit('text', text);
+							});
+						}
+					}
+					if (c < s){
+						document.getElementById('a1').style.display='none';
+						document.getElementById('a2').style.display='none';
+					} 
+					if(c >= s){
+						document.getElementById('a1').style.display='inline';
+						document.getElementById('a2').style.display='inline';
+					}
+					
+					if(c == temp){
+						$( document ).ready(function() {
+							swal ( "Be patient" ,  "You are 5 in a row!" ,  "success" )
+						});						
+					}
+					if(c == tmp) {
+						$( document ).ready(function() {
+							swal ( "Be patient" ,  "You are near!" ,  "success" )
+						});
+					}
+					if(c == s){
+						$( document ).ready(function() {
+							swal ( "Congrats" ,  "It's your turn!" ,  "success" )
+						});
+					}
+					socket.emit('row, current, queue', currentr);
+				});
+			}
+								  
+			
+		}
+		var refreshId = setInterval(auto_refresh, 10000);
+	</script>
+	
 </html>
