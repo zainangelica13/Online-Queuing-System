@@ -14,6 +14,7 @@
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.1.10/vue.min.js"></script>
 		<script type="text/javascript" src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
 		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+		<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 	</head>
 	<body class="is-preload">
 
@@ -78,7 +79,7 @@
 						<nav>
 							<ul>
 								<li><a href="#join">Join</a></li>
-								<li><a href="/back">Cancel</a></li>
+								<li><a id="a1" href="/back">Cancel</a></li>
 							</ul>
 						</nav>
 					</header>
@@ -96,22 +97,22 @@
 								<% if (rel == "Cashier") { %>
 									<form action="/cashier" method="POST">
 										<input type="password" name="qr" id="yourInputFieldId" readonly="readonly"/>
-										<input type="submit" value="check qr code" name="chk"/>
+										<input type="submit" value="check qr code" id="sbt" name="chk"/>
 									</form>
 								<% } else if (rel == "Enrollment") { %>
 									<form action="/enrollment" method="POST">
 										<input type="password" name="qr" id="yourInputFieldId" readonly="readonly"/>
-										<input type="submit" value="check qr code" name="chk"/>
+										<input type="submit" value="check qr code" id="sbt" name="chk"/>
 									</form>
 								<% } else if (rel == "Registrar") { %>
 									<form action="/registrar" method="POST">
 										<input type="password" name="qr" id="yourInputFieldId" readonly="readonly"/>
-										<input type="submit" value="check qr code" name="chk"/>
+										<input type="submit" value="check qr code" id="sbt" name="chk"/>
 									</form>
 								<% } else { %>
 									<form action="/proware" method="POST">
 										<input type="password" name="qr" id="yourInputFieldId" readonly="readonly"/>
-										<input type="submit" value="check qr code" name="chk"/>
+										<input type="submit" value="check qr code" id="sbt" name="chk"/>
 									</form>
 								<% } %>
 							</center>
@@ -156,5 +157,67 @@
 			  }).catch(function (e) {
 				console.error(e);
 			  });
+			</script>
+			
+			<script type="text/javascript">
+			$(document).ready(function() {
+				var allow = false;
+
+				$('#sbt').click(function(e){
+					if(allow == false) {
+						e.preventDefault();			
+						var formData = {
+							qr : $('#yourInputFieldId').val(),
+							validator : allow
+						};
+						if ($('#yourInputFieldId').val() == '') {
+							swal ( "Oops" ,  "Try scanning QR Code!" ,  "warning" )
+						} else {						
+							<% if (rel == "Cashier") { %>
+								$.ajax({
+									type: 'post',
+									url: 'http://localhost:3000/cashier/',
+									dataType: 'json',
+									data: formData
+								})
+							<% } else if (rel == "Enrollment") { %>
+								$.ajax({
+									type: 'post',
+									url: 'http://localhost:3000/enrollment/',
+									dataType: 'json',
+									data: formData
+								})
+							<% } else if (rel == "Registrar") { %>
+								$.ajax({
+									type: 'post',
+									url: 'http://localhost:3000/registrar/',
+									dataType: 'json',
+									data: formData
+								})
+							<% } else { %>
+								$.ajax({
+									type: 'post',
+									url: 'http://localhost:3000/proware/',
+									dataType: 'json',
+									data: formData
+								})
+							<% } %>
+							.done(function(data) {
+								if (data.allow == false) {
+									swal ( "Oops" ,  data.msg ,  "warning" )
+								} else {
+									allow = data.allow;
+									$('#sbt').click();
+								}
+							})
+							.fail(function(jqXHR, textStatus, err) {
+								swal ( "Oops" ,  "Error" ,  "error" )
+								console.log('Error');
+							});
+						}
+					}
+				});
+
+			});
 			</script>
 </html>
