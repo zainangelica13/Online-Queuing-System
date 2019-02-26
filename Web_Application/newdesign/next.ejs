@@ -121,6 +121,105 @@
 			<script src="assets/js/util.js"></script>
 			<script src="assets/js/main.js"></script>
 			
+			<script type="text/javascript">
+				$(document).ready(function() {
+					var allow = false;
 
+					$('#div1').click(function(e){
+						if(allow == false) {
+							e.preventDefault();			
+							var formData = {
+								validator : allow
+							};					
+								$.ajax({
+									type: 'post',
+									url: 'http://localhost:3000/nexttransaction/',
+									dataType: 'json',
+									data: formData
+								})
+								.done(function(data) {
+										allow = data.allow;
+										$('#div1').click();
+									}
+								})
+								.fail(function(jqXHR, textStatus, err) {
+									swal ( "Oops" ,  "Error" ,  "error" )
+									console.log('Error');
+								});
+						}
+					});
+					$('#div2').click(function(e){
+						if(allow == false) {
+							e.preventDefault();			
+							var formData = {
+								validator : allow
+							};					
+								$.ajax({
+									type: 'post',
+									url: 'http://localhost:3000/nexttransaction/',
+									dataType: 'json',
+									data: formData
+								})
+								.done(function(data) {
+										allow = data.allow;
+										$('#div2').click();
+									}
+								})
+								.fail(function(jqXHR, textStatus, err) {
+									swal ( "Oops" ,  "Error" ,  "error" )
+									console.log('Error');
+								});
+						}
+					});
+					$('#div3').click(function(e){
+						if(allow == false) {
+							e.preventDefault();			
+							var formData = {
+								validator : allow
+							};					
+								$.ajax({
+									type: 'post',
+									url: 'http://localhost:3000/nexttransaction/',
+									dataType: 'json',
+									data: formData
+								})
+								.done(function(data) {
+										allow = data.allow;
+										$('#div3').click();
+									}
+								})
+								.fail(function(jqXHR, textStatus, err) {
+									swal ( "Oops" ,  "Error" ,  "error" )
+									console.log('Error');
+								});
+						}
+					});
+					$('#div4').click(function(e){
+						if(allow == false) {
+							e.preventDefault();			
+							var formData = {
+								validator : allow
+							};					
+								$.ajax({
+									type: 'post',
+									url: 'http://localhost:3000/nexttransaction/',
+									dataType: 'json',
+									data: formData
+								})
+								.done(function(data) {
+										allow = data.allow;
+										$('#div4').click();
+									}
+								})
+								.fail(function(jqXHR, textStatus, err) {
+									swal ( "Oops" ,  "Error" ,  "error" )
+									console.log('Error');
+								});
+						}
+					});
+
+				});
+
+			</script> 
 	</body>
 </html>
