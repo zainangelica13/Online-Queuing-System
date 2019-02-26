@@ -65,7 +65,7 @@
 						</div>
 						<nav>
 							<ul>
-								<li><a href="/cancel" onclick="location.href=this.href+'?cnl=<%= rel %>&counter='+s;return false;">Cancel</a></li>
+								<li><a id="a3" href="/cancel" onclick="location.href=this.href+'?cnl=<%= rel %>&counter=<%= queue %>';return false;">Cancel</a></li>
 								<li><a id="a1" href="/transactiondone" onclick="location.href=this.href+'?cnl=<%= rel %>';return false;">Next</a></li>
 								<li><a id="a2" href="/done">Done</a></li>
 							</ul>
@@ -102,14 +102,6 @@
 		$(document).ready(function() {
 			auto_refresh();
 			
-					if (c < s){
-						document.getElementById('a1').style.display='none';
-						document.getElementById('a2').style.display='none';
-					} 
-					if(c >= s){
-						document.getElementById('a1').style.display='inline';
-						document.getElementById('a2').style.display='inline';
-					}
 		});
 		function auto_refresh(){
 			var randomnumber = Math.floor(Math.random() * 100);
@@ -141,6 +133,15 @@
 							});
 						}
 					}
+						
+					if (c < s){
+						document.getElementById('a1').style.display='none';
+						document.getElementById('a2').style.display='none';
+					} 
+					if (c >= s){
+						document.getElementById('a1').style.display='block';
+						document.getElementById('a2').style.display='block';
+					} 
 					
 					if(c == temp){
 						$( document ).ready(function() {
@@ -184,14 +185,15 @@
 							});
 						}
 					}
+					
 					if (c < s){
 						document.getElementById('a1').style.display='none';
 						document.getElementById('a2').style.display='none';
 					} 
-					if(c >= s){
-						document.getElementById('a1').style.display='inline';
-						document.getElementById('a2').style.display='inline';
-					}
+					if (c >= s){
+						document.getElementById('a1').style.display='block';
+						document.getElementById('a2').style.display='block';
+					} 
 					
 					if(c == temp){
 						$( document ).ready(function() {
@@ -235,14 +237,15 @@
 							});
 						}
 					}
+					
 					if (c < s){
 						document.getElementById('a1').style.display='none';
 						document.getElementById('a2').style.display='none';
 					} 
-					if(c >= s){
-						document.getElementById('a1').style.display='inline';
-						document.getElementById('a2').style.display='inline';
-					}
+					if (c >= s){
+						document.getElementById('a1').style.display='block';
+						document.getElementById('a2').style.display='block';
+					} 
 					
 					if(c == temp){
 						$( document ).ready(function() {
@@ -285,14 +288,15 @@
 							});
 						}
 					}
+					
 					if (c < s){
 						document.getElementById('a1').style.display='none';
 						document.getElementById('a2').style.display='none';
 					} 
-					if(c >= s){
-						document.getElementById('a1').style.display='inline';
-						document.getElementById('a2').style.display='inline';
-					}
+					if (c >= s){
+						document.getElementById('a1').style.display='block';
+						document.getElementById('a2').style.display='block';
+					} 
 					
 					if(c == temp){
 						$( document ).ready(function() {
@@ -316,6 +320,7 @@
 			
 		}
 		var refreshId = setInterval(auto_refresh, 10000);
+		
 	</script>
 	
 </html>
