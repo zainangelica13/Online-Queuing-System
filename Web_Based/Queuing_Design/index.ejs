@@ -37,7 +37,7 @@
 				<h1><a href="#"> <img src="sti.png" alt="STI College Icon" style="height:44px"> </a></h1> <br>
 				<nav id="nav">
 					<ul>
-						<li><a href="/home">Home</a></li>
+						<li><a href="/">Home</a></li>
 						<li><a href="/logout" class="button special" id="logout">Log Out</a></li>
 					</ul>
 				</nav>
@@ -76,6 +76,17 @@
 			
 			<script type="text/javascript">
 				$(document).ready(function() {
+
+window.addEventListener( "pageshow", function ( event ) {
+  var historyTraversal = event.persisted || 
+                         ( typeof window.performance != "undefined" && 
+                              window.performance.navigation.type === 2 );
+  if ( historyTraversal ) {
+    // Handle page restore.
+    window.location.reload();
+  }
+});
+
 					var allow=false;
 
 					$('#logout').click(function(e) {
@@ -95,8 +106,8 @@
 							        	keys:['space'],
 							        	action: function(){
 							        		allow=true;
-							        		console.log(allow);
-					        				$('#logout').click();
+											console.log(allow);
+											$('#logout').click();
 							        	}
 							        },
 							        Cancel:{
@@ -110,7 +121,7 @@
 							    }
 							});
 						} else {
-							window.location.href = '/';
+							window.location.href = '/logout';
 						}
 					});
 				});
