@@ -65,6 +65,7 @@ var sess;
 app.get('/', function(req, res) {
 	sess = req.session;
 	console.log(sess.studentid);
+	
 	if(req.session.studentid) {
 		var sql_string = "SELECT * FROM student WHERE student_id = "+ sess.studentid +";";
 		con.query(sql_string , function(err, rows, fields) {
@@ -305,16 +306,16 @@ app.get('/done', function(req,res,html) {
 	con.query(str , function(err, rows2, fields) {
 		if (err) {
 			res.send({
-				"code":400,
-				"failed":"error ocurred"
-			})
+				"code":204,
+				"success":"Email does not exits"
+			});
 		}
-		var filename = __dirname + '/newdesign/home.ejs';
-		var options = {}
-		var data = {rel: ''}
-		ejs.renderFile(filename, data, options, function(err, str){
-			res.send(str);
-		});
+			var filename = __dirname + '/newdesign/home.ejs';
+			var options = {}
+			var data = {rel: ''}
+			ejs.renderFile(filename, data, options, function(err, str){
+				res.send(str);
+			});
 	});	
 	
 });
@@ -322,9 +323,15 @@ app.get('/done', function(req,res,html) {
 app.get('/cancel', function(req,res,html) {
 	var bt = req.query.cnl;
 	var btn = req.query.counter;
-	console.log("counter: ",bt);
+	console.log("counter: ",btn);
 	var sql_string = "SELECT * FROM student";
 	con.query(sql_string , function(err, rows1, fields) {
+		if (err) {
+			res.send({
+				"code":204,
+				"success":"Email does not exits"
+			});
+		}
 		for (var i = 0; i < rows1.length; i++) {
 			if(rows1[i].queue_number > btn){
 				var x = rows1[i].queue_number - 1;
@@ -332,9 +339,9 @@ app.get('/cancel', function(req,res,html) {
 				con.query(str , function(err, rows2, fields) {
 					if (err) {
 						res.send({
-							"code":400,
-							"failed":"error ocurred"
-						})
+							"code":204,
+							"success":"Email does not exits"
+						});
 					}
 				});	
 			}
@@ -343,9 +350,9 @@ app.get('/cancel', function(req,res,html) {
 				con.query(str , function(err, rows2, fields) {
 					if (err) {
 						res.send({
-							"code":400,
-							"failed":"error ocurred"
-						})
+							"code":204,
+							"success":"Email does not exits"
+						});
 					}
 				});	
 			}
@@ -356,17 +363,17 @@ app.get('/cancel', function(req,res,html) {
 			var x = rows2[0].queue_line - 1;
 			if (err) {
 				res.send({
-					"code":400,
-					"failed":"error ocurred"
-				})
+					"code":204,
+					"success":"Email does not exits"
+				});
 			} else {
 				var str = "UPDATE "+ bt +" SET queue_line = " + x + "";
 				con.query(str , function(err, rows, fields) {
 					if (err) {
 						res.send({
-							"code":400,
-							"failed":"error ocurred"
-						})
+							"code":204,
+							"success":"Email does not exits"
+						});
 					}
 					else {
 						var filename = __dirname + '/newdesign/home.ejs';
@@ -386,97 +393,439 @@ app.get('/Cashier', function(req,res) {
 		res.render('command', {qs: req.query});
 	});
 app.post('/Cashier', enCoded, function(req,res) {
-	var qr =  req.body.qr;
+	var obj = {
+		qr:req.body.qr,
+		validator:req.body.validator
+	};
+	var qr =  obj.qr;
 	//Remove comment for session
 	sess= req.session;
-	console.log(sess.studentid);
-	
+	console.log(qr);
+	var date=new Date();
+	var datenow = date.toDateString();
+	console.log(datenow);
 	//comment this variable
 	//var stdnt = "10000125512";
 	var sql_string = "SELECT * FROM queue_management WHERE qr_code = " + qr + ";";
 	sql_string += "SELECT * FROM cashier;";
 	con.query(sql_string , function(err, rows, fields) {
-		var q = rows[1][0].queue_line;
-		var queue = parseInt(q) + 1;
-		var current_number = rows[1][0].current_number;
-		console.log(q,current_number);
 		if (err) {
-			res.send({
-			"code":400,
-			"failed":"error ocurred at 1"
-			})
+			data = {
+				allow: false,
+				msg:'Wrong QR Code!'
+			}
+			res.send(data)
 		}else{
 			if(rows.length >0){
-				if(queue <= 80) {
-					var sql_string = "SELECT * FROM student WHERE student_id = " + sess.studentid + ";";
-					con.query(sql_string , function(err, rows1, fields) {
-						var ownqueue = rows1[0].queue_number;
-						if (err) {
-							res.send({
-							"code":400,
-							"failed":"error ocurred"
-							})
-						} else if (ownqueue == null) {
-							//change the stdnt to sess.studentid
-							var sql_string = "UPDATE student SET counter = 'cashier', queue_number = " + queue + " WHERE student_id = " + sess.studentid;
+				var day = 0;
+				var line = 100;
+				var slot = rows[1][0].slot_reservation;
+				var q = rows[1][0].queue_line;
+				var queue = parseInt(q) + 1;
+				var current_number = rows[1][0].current_number;
+				console.log(q,current_number);
+				if(rows[0][0].qr_code == obj.qr){
+					if (obj.validator == 'false') {
+						var data = {allow: true}
+						res.send(data);
+					} else {
+						if(slot != null){
+							console.log("1")
+							var sql_string = "SELECT * FROM reservation WHERE date = '" + datenow + "' and counter = 'cashier';";
 							con.query(sql_string , function(err, rows1, fields) {
 								if (err) {
-									res.send({
-									"code":400,
-									"failed":"error ocurred"
-									})
-								}else{
-									if(rows1.affectedRows == 1){
-										var str = "UPDATE cashier SET queue_line = " + queue + "";
-										con.query(str , function(err, rows2, fields) {
-										if (err) {
-											res.send({
-											"code":400,
-											"failed":"error ocurred"
-											})
-										}else{
-											if(rows1.affectedRows == 1){
-												var filename = __dirname + '/newdesign/cashier.ejs';
-												var options = {}
-												var data = {rel: 'cashier'}
-												ejs.renderFile(filename, data, options, function(err, str){
-													res.send(str);
-												});	
-											}
-											else{
-												console.log();
-													res.send({
-													"code":204,
-													"success":"Email does not exits"
+									data = {
+										allow: false,
+										msg:'Error!'
+									}
+									res.send(data)
+								} else {
+									if(rows.length > 0){
+										console.log("2")
+										for(var i=0; i< rows.length; i++){
+											day++;
+										}
+										if (day != 0) {
+											console.log("3")
+											var sql_string = "SELECT * FROM reservation WHERE student_id = '"+ sess.studentid +"' and date = '" + datenow + "' and counter = 'cashier';";
+											con.query(sql_string , function(err, rows1, fields) {
+												if (err) {
+													data = {
+														allow: false,
+														msg:'Error!'
+													}
+													res.send(data)
+												} else {
+													if(rows.length > 0){
+														if(queue <= day) {
+															console.log("4")
+															var sql_string = "SELECT * FROM student WHERE student_id = '" + sess.studentid + "';";
+															con.query(sql_string , function(err, rows1, fields) {
+																var ownqueue = rows1[0].queue_number;
+																if (err) {
+																	data = {
+																		allow: false,
+																		msg:'Error!'
+																	}
+																	res.send(data)
+																} else if (ownqueue == null) {
+																	console.log("5")
+																	//change the stdnt to sess.studentid
+																	var sql_string = "UPDATE student SET counter = 'cashier', queue_number = '" + queue + "' WHERE student_id = " + sess.studentid;
+																	con.query(sql_string , function(err, rows1, fields) {
+																		if (err) {
+																			data = {
+																				allow: false,
+																				msg:'Error!'
+																			}
+																			res.send(data)
+																		}else{
+																			if(rows1.affectedRows == 1){
+																				console.log("6")
+																				var str = "UPDATE cashier SET queue_line = '" + queue + "'";
+																				con.query(str , function(err, rows2, fields) {
+																				if (err) {
+																					data = {
+																						allow: false,
+																						msg:'Error!'
+																					}
+																					res.send(data)
+																				}else{
+																					if(rows1.affectedRows == 1){
+																						if (obj.validator == 'false') {
+																							var data = {allow: true}
+																							res.send(data);
+																						} else {
+																							console.log("7")
+																							var filename = __dirname + '/newdesign/cashier.ejs';
+																							var options = {}
+																							var data = {rel: 'cashier', queue: queue}
+																							ejs.renderFile(filename, data, options, function(err, str){
+																								res.send(str);
+																							});	
+																						}
+																					}
+																					else{
+																						data = {
+																							allow: false,
+																							msg:'Error!'
+																						}
+																						res.send(data)
+																					}
+																				}
+																				});
+																			}
+																			else{
+																				data = {
+																					allow: false,
+																					msg:'Error!'
+																				}
+																				res.send(data)
+																			}
+																		}
+																	});
+																}else{
+																	var filename = __dirname + '/newdesign/cashier.ejs';
+																	var options = {}
+																	var data = {rel: 'cashier', queue: queue}
+																	ejs.renderFile(filename, data, options, function(err, str){
+																		res.send(str);
+																	});
+																}
+															});
+														}
+														else {
+															data = {
+																allow: false,
+																msg:'Full!'
+															}
+															res.send(data)
+														}
+													} else { 
+														console.log("8")
+														line -= day;
+														if(queue <= line) {
+															var sql_string = "SELECT * FROM student WHERE student_id = '" + sess.studentid + "';";
+															con.query(sql_string , function(err, rows1, fields) {
+																var ownqueue = rows1[0].queue_number;
+																if (err) {
+																	data = {
+																		allow: false,
+																		msg:'Error!'
+																	}
+																	res.send(data)
+																} else if (ownqueue == null) {
+																	console.log("9")
+																	//change the stdnt to sess.studentid
+																	var sql_string = "UPDATE student SET counter = 'cashier', queue_number = " + queue + " WHERE student_id = " + sess.studentid;
+																	con.query(sql_string , function(err, rows1, fields) {
+																		if (err) {
+																			data = {
+																				allow: false,
+																				msg:'Error!'
+																			}
+																			res.send(data)
+																		}else{
+																			if(rows1.affectedRows == 1){
+																				console.log("10")
+																				var str = "UPDATE cashier SET queue_line = '" + queue + "'";
+																				con.query(str , function(err, rows2, fields) {
+																				if (err) {
+																					data = {
+																						allow: false,
+																						msg:'Error!'
+																					}
+																					res.send(data)
+																				}else{
+																					if(rows1.affectedRows == 1){
+																						console.log("11")
+																						if (obj.validator == 'false') {
+																							var data = {allow: true}
+																							res.send(data);
+																						} else {
+																							var filename = __dirname + '/newdesign/cashier.ejs';
+																							var options = {}
+																							var data = {rel: 'cashier', queue: queue}
+																							ejs.renderFile(filename, data, options, function(err, str){
+																								res.send(str);
+																							});	
+																						}
+																					}
+																					else{
+																						data = {
+																							allow: false,
+																							msg:'Error!'
+																						}
+																						res.send(data)
+																					}
+																				}
+																				});
+																			}
+																			else{
+																				data = {
+																					allow: false,
+																					msg:'Error!'
+																				}
+																				res.send(data)
+																			}
+																		}
+																	});
+																}else{
+																	var filename = __dirname + '/newdesign/cashier.ejs';
+																	var options = {}
+																	var data = {rel: 'cashier', queue: queue}
+																	ejs.renderFile(filename, data, options, function(err, str){
+																		res.send(str);
+																	});
+																}
+															});
+														}
+														else {
+															data = {
+																allow: false,
+																msg:'Full!'
+															}
+															res.send(data)
+														}
+													}
+												}
+											});
+										} else {
+											if(queue <= line) {
+												console.log("12")
+												var sql_string = "SELECT * FROM student WHERE student_id = '" + sess.studentid + "';";
+												con.query(sql_string , function(err, rows1, fields) {
+													var ownqueue = rows1[0].queue_number;
+													if (err) {
+														data = {
+															allow: false,
+															msg:'Error!'
+														}
+														res.send(data)
+													} else if (ownqueue == null) {
+														console.log("13")
+														//change the stdnt to sess.studentid
+														var sql_string = "UPDATE student SET counter = 'cashier', queue_number = '" + queue + "' WHERE student_id = " + sess.studentid;
+														con.query(sql_string , function(err, rows1, fields) {
+															if (err) {
+																data = {
+																	allow: false,
+																	msg:'Error!'
+																}
+																res.send(data)
+															}else{
+																if(rows1.affectedRows == 1){
+																	console.log("14")
+																	var str = "UPDATE cashier SET queue_line = '" + queue + "'";
+																	con.query(str , function(err, rows2, fields) {
+																	if (err) {
+																		data = {
+																			allow: false,
+																			msg:'Error!'
+																		}
+																		res.send(data)
+																	}else{
+																		if(rows1.affectedRows == 1){
+																			console.log("15")
+																			if (obj.validator == 'false') {
+																				var data = {allow: true}
+																				res.send(data);
+																			} else {
+																				var filename = __dirname + '/newdesign/cashier.ejs';
+																				var options = {}
+																				var data = {rel: 'cashier', queue: queue}
+																				ejs.renderFile(filename, data, options, function(err, str){
+																					res.send(str);
+																				});	
+																			}
+																		}
+																		else{
+																			data = {
+																				allow: false,
+																				msg:'Error!'
+																			}
+																			res.send(data)
+																		}
+																	}
+																	});
+																}
+																else{
+																	data = {
+																		allow: false,
+																		msg:'Error!'
+																	}
+																	res.send(data)
+																}
+															}
+														});
+													}else{
+														var filename = __dirname + '/newdesign/cashier.ejs';
+														var options = {}
+														var data = {rel: 'cashier', queue: queue}
+														ejs.renderFile(filename, data, options, function(err, str){
+															res.send(str);
+														});
+													}
 												});
 											}
+											else {
+												data = {
+													allow: false,
+													msg:'Full!'
+												}
+												res.send(data)
+											}
 										}
-										});
-									}
-									else{
-										res.send({
-										"code":204,
-										"success":"Email does not exits"
-										});
+									} else {
+										data = {
+											allow: false,
+											msg:'No reservation!'
+										}
+										res.send(data)
 									}
 								}
 							});
-						}else{
-							var filename = __dirname + '/newdesign/cashier.ejs';
-							var options = {}
-							var data = {rel: 'cashier'}
-							ejs.renderFile(filename, data, options, function(err, str){
-								res.send(str);
-							});
+						} else {
+							if(queue <= line) {
+								console.log("16")
+								var sql_string = "SELECT * FROM student WHERE student_id = '" + sess.studentid + "';";
+								con.query(sql_string , function(err, rows1, fields) {
+									var ownqueue = rows1[0].queue_number;
+									if (err) {
+										data = {
+											allow: false,
+											msg:'Error!'
+										}
+										res.send(data)
+									} else if (ownqueue == null) {
+										console.log("17")
+										//change the stdnt to sess.studentid
+										var sql_string = "UPDATE student SET counter = 'cashier', queue_number = '" + queue + "' WHERE student_id = " + sess.studentid;
+										con.query(sql_string , function(err, rows1, fields) {
+											if (err) {
+												data = {
+													allow: false,
+													msg:'Error!'
+												}
+												res.send(data)
+											}else{
+												if(rows1.affectedRows == 1){
+													console.log("18")
+													var str = "UPDATE cashier SET queue_line = '" + queue + "'";
+													con.query(str , function(err, rows2, fields) {
+													if (err) {
+														data = {
+															allow: false,
+															msg:'Error!'
+														}
+														res.send(data)
+													}else{
+														if(rows1.affectedRows == 1){
+															if (obj.validator == 'false') {
+																var data = {allow: true}
+																res.send(data);
+															} else {
+																console.log("19")
+																var filename = __dirname + '/newdesign/cashier.ejs';
+																var options = {}
+																var data = {rel: 'cashier', queue: queue}
+																ejs.renderFile(filename, data, options, function(err, str){
+																	res.send(str);
+																});	
+															}
+														}
+														else{
+															data = {
+																allow: false,
+																msg:'Error!'
+															}
+															res.send(data)
+														}
+													}
+													});
+												}
+												else{
+													data = {
+														allow: false,
+														msg:'Error!'
+													}
+													res.send(data)
+												}
+											}
+										});
+									}else{
+										var filename = __dirname + '/newdesign/cashier.ejs';
+										var options = {}
+										var data = {rel: 'cashier', queue: queue}
+										ejs.renderFile(filename, data, options, function(err, str){
+											res.send(str);
+										});
+									}
+								});
+							}
+							else {
+								data = {
+									allow: false,
+									msg:'Full!'
+								}
+								res.send(data)
+							}
 						}
-					});
+					}
 				}
 				else{
-					res.send({
-					"code":204,
-					"success":"Email does not exits"
-					});
+					data = {
+						allow: false,
+						msg:'Error!'
+					}
+					res.send(data)
 				}
+			} else {
+				data = {
+					allow: false,
+					msg:'Error!'
+				}
+				res.send(data)
 			}
 		}
 	});	
@@ -486,97 +835,439 @@ app.get('/enrollment', function(req,res) {
 		res.render('command', {qs: req.query});
 	});
 app.post('/enrollment', enCoded, function(req,res) {
-	var qr =  req.body.qr;
+	var obj = {
+		qr:req.body.qr,
+		validator:req.body.validator
+	};
+	var qr =  obj.qr;
 	//Remove comment for session
 	sess= req.session;
-	console.log(sess.studentid);
-	
-	//remove this variable
+	console.log(qr);
+	var date=new Date();
+	var datenow = date.toDateString();
+	console.log(datenow);
+	//comment this variable
 	//var stdnt = "10000125512";
 	var sql_string = "SELECT * FROM queue_management WHERE qr_code = " + qr + ";";
 	sql_string += "SELECT * FROM enrollment;";
 	con.query(sql_string , function(err, rows, fields) {
-		var q = rows[1][0].queue_line;
-		var queue = parseInt(q) + 1;
-		var current_number = rows[1][0].current_number;
-		console.log(q,current_number);
 		if (err) {
-			res.send({
-			"code":400,
-			"failed":"error ocurred at 1"
-			})
+			data = {
+				allow: false,
+				msg:'Wrong QR Code!'
+			}
+			res.send(data)
 		}else{
 			if(rows.length >0){
-				if(queue <= 80) {
-					var sql_string = "SELECT * FROM student WHERE student_id = " + sess.studentid + ";";
-					con.query(sql_string , function(err, rows1, fields) {
-						var ownqueue = rows1[0].queue_number;
-						if (err) {
-							res.send({
-							"code":400,
-							"failed":"error ocurred"
-							})
-						} else if (ownqueue == null) {
-							//change the stdnt to sess.studentid
-							var sql_string = "UPDATE student SET counter = 'enrollment', queue_number = " + queue + " WHERE student_id = " + sess.studentid;
+				var day = 0;
+				var line = 100;
+				var slot = rows[1][0].slot_reservation;
+				var q = rows[1][0].queue_line;
+				var queue = parseInt(q) + 1;
+				var current_number = rows[1][0].current_number;
+				console.log(q,current_number);
+				if(rows[0][0].qr_code == obj.qr){
+					if (obj.validator == 'false') {
+						var data = {allow: true}
+						res.send(data);
+					} else {
+						if(slot != null){
+							console.log("1")
+							var sql_string = "SELECT * FROM reservation WHERE date = '" + datenow + "' and counter = 'enrollment';";
 							con.query(sql_string , function(err, rows1, fields) {
 								if (err) {
-									res.send({
-									"code":400,
-									"failed":"error ocurred"
-									})
-								}else{
-									if(rows1.affectedRows == 1){
-										var str = "UPDATE enrollment SET queue_line = " + queue + "";
-										con.query(str , function(err, rows2, fields) {
-										if (err) {
-											res.send({
-											"code":400,
-											"failed":"error ocurred"
-											})
-										}else{
-											if(rows1.affectedRows == 1){
-												var filename = __dirname + '/newdesign/cashier.ejs';
-												var options = {}
-												var data = {rel: 'enrollment'}
-												ejs.renderFile(filename, data, options, function(err, str){
-													res.send(str);
-												});	
-											}
-											else{
-												console.log();
-													res.send({
-													"code":204,
-													"success":"Email does not exits"
+									data = {
+										allow: false,
+										msg:'Error!'
+									}
+									res.send(data)
+								} else {
+									if(rows.length > 0){
+										console.log("2")
+										for(var i=0; i< rows.length; i++){
+											day++;
+										}
+										if (day != 0) {
+											console.log("3")
+											var sql_string = "SELECT * FROM reservation WHERE student_id = '"+ sess.studentid +"' and date = '" + datenow + "' and counter = 'enrollment';";
+											con.query(sql_string , function(err, rows1, fields) {
+												if (err) {
+													data = {
+														allow: false,
+														msg:'Error!'
+													}
+													res.send(data)
+												} else {
+													if(rows.length > 0){
+														if(queue <= day) {
+															console.log("4")
+															var sql_string = "SELECT * FROM student WHERE student_id = '" + sess.studentid + "';";
+															con.query(sql_string , function(err, rows1, fields) {
+																var ownqueue = rows1[0].queue_number;
+																if (err) {
+																	data = {
+																		allow: false,
+																		msg:'Error!'
+																	}
+																	res.send(data)
+																} else if (ownqueue == null) {
+																	console.log("5")
+																	//change the stdnt to sess.studentid
+																	var sql_string = "UPDATE student SET counter = 'enrollment', queue_number = '" + queue + "' WHERE student_id = " + sess.studentid;
+																	con.query(sql_string , function(err, rows1, fields) {
+																		if (err) {
+																			data = {
+																				allow: false,
+																				msg:'Error!'
+																			}
+																			res.send(data)
+																		}else{
+																			if(rows1.affectedRows == 1){
+																				console.log("6")
+																				var str = "UPDATE enrollment SET queue_line = '" + queue + "'";
+																				con.query(str , function(err, rows2, fields) {
+																				if (err) {
+																					data = {
+																						allow: false,
+																						msg:'Error!'
+																					}
+																					res.send(data)
+																				}else{
+																					if(rows1.affectedRows == 1){
+																						if (obj.validator == 'false') {
+																							var data = {allow: true}
+																							res.send(data);
+																						} else {
+																							console.log("7")
+																							var filename = __dirname + '/newdesign/cashier.ejs';
+																							var options = {}
+																							var data = {rel: 'enrollment', queue: queue}
+																							ejs.renderFile(filename, data, options, function(err, str){
+																								res.send(str);
+																							});	
+																						}
+																					}
+																					else{
+																						data = {
+																							allow: false,
+																							msg:'Error!'
+																						}
+																						res.send(data)
+																					}
+																				}
+																				});
+																			}
+																			else{
+																				data = {
+																					allow: false,
+																					msg:'Error!'
+																				}
+																				res.send(data)
+																			}
+																		}
+																	});
+																}else{
+																	var filename = __dirname + '/newdesign/cashier.ejs';
+																	var options = {}
+																	var data = {rel: 'enrollment', queue: queue}
+																	ejs.renderFile(filename, data, options, function(err, str){
+																		res.send(str);
+																	});
+																}
+															});
+														}
+														else {
+															data = {
+																allow: false,
+																msg:'Full!'
+															}
+															res.send(data)
+														}
+													} else { 
+														console.log("8")
+														line -= day;
+														if(queue <= line) {
+															var sql_string = "SELECT * FROM student WHERE student_id = '" + sess.studentid + "';";
+															con.query(sql_string , function(err, rows1, fields) {
+																var ownqueue = rows1[0].queue_number;
+																if (err) {
+																	data = {
+																		allow: false,
+																		msg:'Error!'
+																	}
+																	res.send(data)
+																} else if (ownqueue == null) {
+																	console.log("9")
+																	//change the stdnt to sess.studentid
+																	var sql_string = "UPDATE student SET counter = 'enrollment', queue_number = " + queue + " WHERE student_id = " + sess.studentid;
+																	con.query(sql_string , function(err, rows1, fields) {
+																		if (err) {
+																			data = {
+																				allow: false,
+																				msg:'Error!'
+																			}
+																			res.send(data)
+																		}else{
+																			if(rows1.affectedRows == 1){
+																				console.log("10")
+																				var str = "UPDATE enrollment SET queue_line = '" + queue + "'";
+																				con.query(str , function(err, rows2, fields) {
+																				if (err) {
+																					data = {
+																						allow: false,
+																						msg:'Error!'
+																					}
+																					res.send(data)
+																				}else{
+																					if(rows1.affectedRows == 1){
+																						console.log("11")
+																						if (obj.validator == 'false') {
+																							var data = {allow: true}
+																							res.send(data);
+																						} else {
+																							var filename = __dirname + '/newdesign/cashier.ejs';
+																							var options = {}
+																							var data = {rel: 'enrollment', queue: queue}
+																							ejs.renderFile(filename, data, options, function(err, str){
+																								res.send(str);
+																							});	
+																						}
+																					}
+																					else{
+																						data = {
+																							allow: false,
+																							msg:'Error!'
+																						}
+																						res.send(data)
+																					}
+																				}
+																				});
+																			}
+																			else{
+																				data = {
+																					allow: false,
+																					msg:'Error!'
+																				}
+																				res.send(data)
+																			}
+																		}
+																	});
+																}else{
+																	var filename = __dirname + '/newdesign/cashier.ejs';
+																	var options = {}
+																	var data = {rel: 'enrollment', queue: queue}
+																	ejs.renderFile(filename, data, options, function(err, str){
+																		res.send(str);
+																	});
+																}
+															});
+														}
+														else {
+															data = {
+																allow: false,
+																msg:'Full!'
+															}
+															res.send(data)
+														}
+													}
+												}
+											});
+										} else {
+											if(queue <= line) {
+												console.log("12")
+												var sql_string = "SELECT * FROM student WHERE student_id = '" + sess.studentid + "';";
+												con.query(sql_string , function(err, rows1, fields) {
+													var ownqueue = rows1[0].queue_number;
+													if (err) {
+														data = {
+															allow: false,
+															msg:'Error!'
+														}
+														res.send(data)
+													} else if (ownqueue == null) {
+														console.log("13")
+														//change the stdnt to sess.studentid
+														var sql_string = "UPDATE student SET counter = 'enrollment', queue_number = '" + queue + "' WHERE student_id = " + sess.studentid;
+														con.query(sql_string , function(err, rows1, fields) {
+															if (err) {
+																data = {
+																	allow: false,
+																	msg:'Error!'
+																}
+																res.send(data)
+															}else{
+																if(rows1.affectedRows == 1){
+																	console.log("14")
+																	var str = "UPDATE enrollment SET queue_line = '" + queue + "'";
+																	con.query(str , function(err, rows2, fields) {
+																	if (err) {
+																		data = {
+																			allow: false,
+																			msg:'Error!'
+																		}
+																		res.send(data)
+																	}else{
+																		if(rows1.affectedRows == 1){
+																			console.log("15")
+																			if (obj.validator == 'false') {
+																				var data = {allow: true}
+																				res.send(data);
+																			} else {
+																				var filename = __dirname + '/newdesign/cashier.ejs';
+																				var options = {}
+																				var data = {rel: 'enrollment', queue: queue}
+																				ejs.renderFile(filename, data, options, function(err, str){
+																					res.send(str);
+																				});	
+																			}
+																		}
+																		else{
+																			data = {
+																				allow: false,
+																				msg:'Error!'
+																			}
+																			res.send(data)
+																		}
+																	}
+																	});
+																}
+																else{
+																	data = {
+																		allow: false,
+																		msg:'Error!'
+																	}
+																	res.send(data)
+																}
+															}
+														});
+													}else{
+														var filename = __dirname + '/newdesign/cashier.ejs';
+														var options = {}
+														var data = {rel: 'enrollment', queue: queue}
+														ejs.renderFile(filename, data, options, function(err, str){
+															res.send(str);
+														});
+													}
 												});
 											}
+											else {
+												data = {
+													allow: false,
+													msg:'Full!'
+												}
+												res.send(data)
+											}
 										}
-										});
-									}
-									else{
-										res.send({
-										"code":204,
-										"success":"Email does not exits"
-										});
+									} else {
+										data = {
+											allow: false,
+											msg:'No reservation!'
+										}
+										res.send(data)
 									}
 								}
 							});
-						}else{
-							var filename = __dirname + '/newdesign/cashier.ejs';
-							var options = {}
-							var data = {rel: 'enrollment'}
-							ejs.renderFile(filename, data, options, function(err, str){
-								res.send(str);
-							});
+						} else {
+							if(queue <= line) {
+								console.log("16")
+								var sql_string = "SELECT * FROM student WHERE student_id = '" + sess.studentid + "';";
+								con.query(sql_string , function(err, rows1, fields) {
+									var ownqueue = rows1[0].queue_number;
+									if (err) {
+										data = {
+											allow: false,
+											msg:'Error!'
+										}
+										res.send(data)
+									} else if (ownqueue == null) {
+										console.log("17")
+										//change the stdnt to sess.studentid
+										var sql_string = "UPDATE student SET counter = 'enrollment', queue_number = '" + queue + "' WHERE student_id = " + sess.studentid;
+										con.query(sql_string , function(err, rows1, fields) {
+											if (err) {
+												data = {
+													allow: false,
+													msg:'Error!'
+												}
+												res.send(data)
+											}else{
+												if(rows1.affectedRows == 1){
+													console.log("18")
+													var str = "UPDATE enrollment SET queue_line = '" + queue + "'";
+													con.query(str , function(err, rows2, fields) {
+													if (err) {
+														data = {
+															allow: false,
+															msg:'Error!'
+														}
+														res.send(data)
+													}else{
+														if(rows1.affectedRows == 1){
+															if (obj.validator == 'false') {
+																var data = {allow: true}
+																res.send(data);
+															} else {
+																console.log("19")
+																var filename = __dirname + '/newdesign/cashier.ejs';
+																var options = {}
+																var data = {rel: 'enrollment', queue: queue}
+																ejs.renderFile(filename, data, options, function(err, str){
+																	res.send(str);
+																});	
+															}
+														}
+														else{
+															data = {
+																allow: false,
+																msg:'Error!'
+															}
+															res.send(data)
+														}
+													}
+													});
+												}
+												else{
+													data = {
+														allow: false,
+														msg:'Error!'
+													}
+													res.send(data)
+												}
+											}
+										});
+									}else{
+										var filename = __dirname + '/newdesign/cashier.ejs';
+										var options = {}
+										var data = {rel: 'enrollment', queue: queue}
+										ejs.renderFile(filename, data, options, function(err, str){
+											res.send(str);
+										});
+									}
+								});
+							}
+							else {
+								data = {
+									allow: false,
+									msg:'Full!'
+								}
+								res.send(data)
+							}
 						}
-					});
+					}
 				}
 				else{
-					res.send({
-					"code":204,
-					"success":"Email does not exits"
-					});
+					data = {
+						allow: false,
+						msg:'Error!'
+					}
+					res.send(data)
 				}
+			} else {
+				data = {
+					allow: false,
+					msg:'Error!'
+				}
+				res.send(data)
 			}
 		}
 	});	
@@ -586,97 +1277,439 @@ app.get('/registrar', function(req,res) {
 		res.render('command', {qs: req.query});
 	});
 app.post('/registrar', enCoded, function(req,res) {
-	var qr =  req.body.qr;
+	var obj = {
+		qr:req.body.qr,
+		validator:req.body.validator
+	};
+	var qr =  obj.qr;
 	//Remove comment for session
 	sess= req.session;
-	console.log(sess.studentid);
-	
-	//remove this variable
+	console.log(qr);
+	var date=new Date();
+	var datenow = date.toDateString();
+	console.log(datenow);
+	//comment this variable
 	//var stdnt = "10000125512";
 	var sql_string = "SELECT * FROM queue_management WHERE qr_code = " + qr + ";";
 	sql_string += "SELECT * FROM registrar;";
 	con.query(sql_string , function(err, rows, fields) {
-		var q = rows[1][0].queue_line;
-		var queue = parseInt(q) + 1;
-		var current_number = rows[1][0].current_number;
-		console.log(q,current_number);
 		if (err) {
-			res.send({
-			"code":400,
-			"failed":"error ocurred at 1"
-			})
+			data = {
+				allow: false,
+				msg:'Wrong QR Code!'
+			}
+			res.send(data)
 		}else{
 			if(rows.length >0){
-				if(queue <= 80) {
-					var sql_string = "SELECT * FROM student WHERE student_id = " + sess.studentid + ";";
-					con.query(sql_string , function(err, rows1, fields) {
-						var ownqueue = rows1[0].queue_number;
-						if (err) {
-							res.send({
-							"code":400,
-							"failed":"error ocurred"
-							})
-						} else if (ownqueue == null) {
-							//change the stdnt to sess.studentid
-							var sql_string = "UPDATE student SET counter = 'registrar', queue_number = " + queue + " WHERE student_id = " + sess.studentid;
+				var day = 0;
+				var line = 100;
+				var slot = rows[1][0].slot_reservation;
+				var q = rows[1][0].queue_line;
+				var queue = parseInt(q) + 1;
+				var current_number = rows[1][0].current_number;
+				console.log(q,current_number);
+				if(rows[0][0].qr_code == obj.qr){
+					if (obj.validator == 'false') {
+						var data = {allow: true}
+						res.send(data);
+					} else {
+						if(slot != null){
+							console.log("1")
+							var sql_string = "SELECT * FROM reservation WHERE date = '" + datenow + "' and counter = 'registrar';";
 							con.query(sql_string , function(err, rows1, fields) {
 								if (err) {
-									res.send({
-									"code":400,
-									"failed":"error ocurred"
-									})
-								}else{
-									if(rows1.affectedRows == 1){
-										var str = "UPDATE registrar SET queue_line = " + queue + "";
-										con.query(str , function(err, rows2, fields) {
-										if (err) {
-											res.send({
-											"code":400,
-											"failed":"error ocurred"
-											})
-										}else{
-											if(rows1.affectedRows == 1){
-												var filename = __dirname + '/newdesign/cashier.ejs';
-												var options = {}
-												var data = {rel: 'registrar'}
-												ejs.renderFile(filename, data, options, function(err, str){
-													res.send(str);
-												});	
-											}
-											else{
-												console.log();
-													res.send({
-													"code":204,
-													"success":"Email does not exits"
+									data = {
+										allow: false,
+										msg:'Error!'
+									}
+									res.send(data)
+								} else {
+									if(rows.length > 0){
+										console.log("2")
+										for(var i=0; i< rows.length; i++){
+											day++;
+										}
+										if (day != 0) {
+											console.log("3")
+											var sql_string = "SELECT * FROM reservation WHERE student_id = '"+ sess.studentid +"' and date = '" + datenow + "' and counter = 'registrar';";
+											con.query(sql_string , function(err, rows1, fields) {
+												if (err) {
+													data = {
+														allow: false,
+														msg:'Error!'
+													}
+													res.send(data)
+												} else {
+													if(rows.length > 0){
+														if(queue <= day) {
+															console.log("4")
+															var sql_string = "SELECT * FROM student WHERE student_id = '" + sess.studentid + "';";
+															con.query(sql_string , function(err, rows1, fields) {
+																var ownqueue = rows1[0].queue_number;
+																if (err) {
+																	data = {
+																		allow: false,
+																		msg:'Error!'
+																	}
+																	res.send(data)
+																} else if (ownqueue == null) {
+																	console.log("5")
+																	//change the stdnt to sess.studentid
+																	var sql_string = "UPDATE student SET counter = 'registrar', queue_number = '" + queue + "' WHERE student_id = " + sess.studentid;
+																	con.query(sql_string , function(err, rows1, fields) {
+																		if (err) {
+																			data = {
+																				allow: false,
+																				msg:'Error!'
+																			}
+																			res.send(data)
+																		}else{
+																			if(rows1.affectedRows == 1){
+																				console.log("6")
+																				var str = "UPDATE registrar SET queue_line = '" + queue + "'";
+																				con.query(str , function(err, rows2, fields) {
+																				if (err) {
+																					data = {
+																						allow: false,
+																						msg:'Error!'
+																					}
+																					res.send(data)
+																				}else{
+																					if(rows1.affectedRows == 1){
+																						if (obj.validator == 'false') {
+																							var data = {allow: true}
+																							res.send(data);
+																						} else {
+																							console.log("7")
+																							var filename = __dirname + '/newdesign/cashier.ejs';
+																							var options = {}
+																							var data = {rel: 'registrar', queue: queue}
+																							ejs.renderFile(filename, data, options, function(err, str){
+																								res.send(str);
+																							});	
+																						}
+																					}
+																					else{
+																						data = {
+																							allow: false,
+																							msg:'Error!'
+																						}
+																						res.send(data)
+																					}
+																				}
+																				});
+																			}
+																			else{
+																				data = {
+																					allow: false,
+																					msg:'Error!'
+																				}
+																				res.send(data)
+																			}
+																		}
+																	});
+																}else{
+																	var filename = __dirname + '/newdesign/cashier.ejs';
+																	var options = {}
+																	var data = {rel: 'registrar', queue: queue}
+																	ejs.renderFile(filename, data, options, function(err, str){
+																		res.send(str);
+																	});
+																}
+															});
+														}
+														else {
+															data = {
+																allow: false,
+																msg:'Full!'
+															}
+															res.send(data)
+														}
+													} else { 
+														console.log("8")
+														line -= day;
+														if(queue <= line) {
+															var sql_string = "SELECT * FROM student WHERE student_id = '" + sess.studentid + "';";
+															con.query(sql_string , function(err, rows1, fields) {
+																var ownqueue = rows1[0].queue_number;
+																if (err) {
+																	data = {
+																		allow: false,
+																		msg:'Error!'
+																	}
+																	res.send(data)
+																} else if (ownqueue == null) {
+																	console.log("9")
+																	//change the stdnt to sess.studentid
+																	var sql_string = "UPDATE student SET counter = 'registrar', queue_number = " + queue + " WHERE student_id = " + sess.studentid;
+																	con.query(sql_string , function(err, rows1, fields) {
+																		if (err) {
+																			data = {
+																				allow: false,
+																				msg:'Error!'
+																			}
+																			res.send(data)
+																		}else{
+																			if(rows1.affectedRows == 1){
+																				console.log("10")
+																				var str = "UPDATE registrar SET queue_line = '" + queue + "'";
+																				con.query(str , function(err, rows2, fields) {
+																				if (err) {
+																					data = {
+																						allow: false,
+																						msg:'Error!'
+																					}
+																					res.send(data)
+																				}else{
+																					if(rows1.affectedRows == 1){
+																						console.log("11")
+																						if (obj.validator == 'false') {
+																							var data = {allow: true}
+																							res.send(data);
+																						} else {
+																							var filename = __dirname + '/newdesign/cashier.ejs';
+																							var options = {}
+																							var data = {rel: 'registrar', queue: queue}
+																							ejs.renderFile(filename, data, options, function(err, str){
+																								res.send(str);
+																							});	
+																						}
+																					}
+																					else{
+																						data = {
+																							allow: false,
+																							msg:'Error!'
+																						}
+																						res.send(data)
+																					}
+																				}
+																				});
+																			}
+																			else{
+																				data = {
+																					allow: false,
+																					msg:'Error!'
+																				}
+																				res.send(data)
+																			}
+																		}
+																	});
+																}else{
+																	var filename = __dirname + '/newdesign/cashier.ejs';
+																	var options = {}
+																	var data = {rel: 'registrar', queue: queue}
+																	ejs.renderFile(filename, data, options, function(err, str){
+																		res.send(str);
+																	});
+																}
+															});
+														}
+														else {
+															data = {
+																allow: false,
+																msg:'Full!'
+															}
+															res.send(data)
+														}
+													}
+												}
+											});
+										} else {
+											if(queue <= line) {
+												console.log("12")
+												var sql_string = "SELECT * FROM student WHERE student_id = '" + sess.studentid + "';";
+												con.query(sql_string , function(err, rows1, fields) {
+													var ownqueue = rows1[0].queue_number;
+													if (err) {
+														data = {
+															allow: false,
+															msg:'Error!'
+														}
+														res.send(data)
+													} else if (ownqueue == null) {
+														console.log("13")
+														//change the stdnt to sess.studentid
+														var sql_string = "UPDATE student SET counter = 'registrar', queue_number = '" + queue + "' WHERE student_id = " + sess.studentid;
+														con.query(sql_string , function(err, rows1, fields) {
+															if (err) {
+																data = {
+																	allow: false,
+																	msg:'Error!'
+																}
+																res.send(data)
+															}else{
+																if(rows1.affectedRows == 1){
+																	console.log("14")
+																	var str = "UPDATE registrar SET queue_line = '" + queue + "'";
+																	con.query(str , function(err, rows2, fields) {
+																	if (err) {
+																		data = {
+																			allow: false,
+																			msg:'Error!'
+																		}
+																		res.send(data)
+																	}else{
+																		if(rows1.affectedRows == 1){
+																			console.log("15")
+																			if (obj.validator == 'false') {
+																				var data = {allow: true}
+																				res.send(data);
+																			} else {
+																				var filename = __dirname + '/newdesign/cashier.ejs';
+																				var options = {}
+																				var data = {rel: 'registrar', queue: queue}
+																				ejs.renderFile(filename, data, options, function(err, str){
+																					res.send(str);
+																				});	
+																			}
+																		}
+																		else{
+																			data = {
+																				allow: false,
+																				msg:'Error!'
+																			}
+																			res.send(data)
+																		}
+																	}
+																	});
+																}
+																else{
+																	data = {
+																		allow: false,
+																		msg:'Error!'
+																	}
+																	res.send(data)
+																}
+															}
+														});
+													}else{
+														var filename = __dirname + '/newdesign/cashier.ejs';
+														var options = {}
+														var data = {rel: 'registrar', queue: queue}
+														ejs.renderFile(filename, data, options, function(err, str){
+															res.send(str);
+														});
+													}
 												});
 											}
+											else {
+												data = {
+													allow: false,
+													msg:'Full!'
+												}
+												res.send(data)
+											}
 										}
-										});
-									}
-									else{
-										res.send({
-										"code":204,
-										"success":"Email does not exits"
-										});
+									} else {
+										data = {
+											allow: false,
+											msg:'No reservation!'
+										}
+										res.send(data)
 									}
 								}
 							});
-						}else{
-							var filename = __dirname + '/newdesign/cashier.ejs';
-							var options = {}
-							var data = {rel: 'registrar'}
-							ejs.renderFile(filename, data, options, function(err, str){
-								res.send(str);
-							});
+						} else {
+							if(queue <= line) {
+								console.log("16")
+								var sql_string = "SELECT * FROM student WHERE student_id = '" + sess.studentid + "';";
+								con.query(sql_string , function(err, rows1, fields) {
+									var ownqueue = rows1[0].queue_number;
+									if (err) {
+										data = {
+											allow: false,
+											msg:'Error!'
+										}
+										res.send(data)
+									} else if (ownqueue == null) {
+										console.log("17")
+										//change the stdnt to sess.studentid
+										var sql_string = "UPDATE student SET counter = 'registrar', queue_number = '" + queue + "' WHERE student_id = " + sess.studentid;
+										con.query(sql_string , function(err, rows1, fields) {
+											if (err) {
+												data = {
+													allow: false,
+													msg:'Error!'
+												}
+												res.send(data)
+											}else{
+												if(rows1.affectedRows == 1){
+													console.log("18")
+													var str = "UPDATE registrar SET queue_line = '" + queue + "'";
+													con.query(str , function(err, rows2, fields) {
+													if (err) {
+														data = {
+															allow: false,
+															msg:'Error!'
+														}
+														res.send(data)
+													}else{
+														if(rows1.affectedRows == 1){
+															if (obj.validator == 'false') {
+																var data = {allow: true}
+																res.send(data);
+															} else {
+																console.log("19")
+																var filename = __dirname + '/newdesign/cashier.ejs';
+																var options = {}
+																var data = {rel: 'registrar', queue: queue}
+																ejs.renderFile(filename, data, options, function(err, str){
+																	res.send(str);
+																});	
+															}
+														}
+														else{
+															data = {
+																allow: false,
+																msg:'Error!'
+															}
+															res.send(data)
+														}
+													}
+													});
+												}
+												else{
+													data = {
+														allow: false,
+														msg:'Error!'
+													}
+													res.send(data)
+												}
+											}
+										});
+									}else{
+										var filename = __dirname + '/newdesign/cashier.ejs';
+										var options = {}
+										var data = {rel: 'registrar', queue: queue}
+										ejs.renderFile(filename, data, options, function(err, str){
+											res.send(str);
+										});
+									}
+								});
+							}
+							else {
+								data = {
+									allow: false,
+									msg:'Full!'
+								}
+								res.send(data)
+							}
 						}
-					});
+					}
 				}
 				else{
-					res.send({
-					"code":204,
-					"success":"Email does not exits"
-					});
+					data = {
+						allow: false,
+						msg:'Error!'
+					}
+					res.send(data)
 				}
+			} else {
+				data = {
+					allow: false,
+					msg:'Error!'
+				}
+				res.send(data)
 			}
 		}
 	});	
@@ -686,97 +1719,439 @@ app.get('/proware', function(req,res) {
 		res.render('command', {qs: req.query});
 	});
 app.post('/proware', enCoded, function(req,res) {
-	var qr =  req.body.qr;
+	var obj = {
+		qr:req.body.qr,
+		validator:req.body.validator
+	};
+	var qr =  obj.qr;
 	//Remove comment for session
 	sess= req.session;
-	console.log(sess.studentid);
-	
-	//remove this variable
+	console.log(qr);
+	var date=new Date();
+	var datenow = date.toDateString();
+	console.log(datenow);
+	//comment this variable
 	//var stdnt = "10000125512";
 	var sql_string = "SELECT * FROM queue_management WHERE qr_code = " + qr + ";";
 	sql_string += "SELECT * FROM proware;";
 	con.query(sql_string , function(err, rows, fields) {
-		var q = rows[1][0].queue_line;
-		var queue = parseInt(q) + 1;
-		var current_number = rows[1][0].current_number;
-		console.log(q,current_number);
 		if (err) {
-			res.send({
-			"code":400,
-			"failed":"error ocurred at 1"
-			})
+			data = {
+				allow: false,
+				msg:'Wrong QR Code!'
+			}
+			res.send(data)
 		}else{
 			if(rows.length >0){
-				if(queue <= 80) {
-					var sql_string = "SELECT * FROM student WHERE student_id = " + sess.studentid + ";";
-					con.query(sql_string , function(err, rows1, fields) {
-						var ownqueue = rows1[0].queue_number;
-						if (err) {
-							res.send({
-							"code":400,
-							"failed":"error ocurred"
-							})
-						} else if (ownqueue == null) {
-							//change the stdnt to sess.studentid
-							var sql_string = "UPDATE student SET counter = 'proware', queue_number = " + queue + " WHERE student_id = " + sess.studentid;
+				var day = 0;
+				var line = 100;
+				var slot = rows[1][0].slot_reservation;
+				var q = rows[1][0].queue_line;
+				var queue = parseInt(q) + 1;
+				var current_number = rows[1][0].current_number;
+				console.log(q,current_number);
+				if(rows[0][0].qr_code == obj.qr){
+					if (obj.validator == 'false') {
+						var data = {allow: true}
+						res.send(data);
+					} else {
+						if(slot != null){
+							console.log("1")
+							var sql_string = "SELECT * FROM reservation WHERE date = '" + datenow + "' and counter = 'proware';";
 							con.query(sql_string , function(err, rows1, fields) {
 								if (err) {
-									res.send({
-									"code":400,
-									"failed":"error ocurred"
-									})
-								}else{
-									if(rows1.affectedRows == 1){
-										var str = "UPDATE proware SET queue_line = " + queue + "";
-										con.query(str , function(err, rows2, fields) {
-										if (err) {
-											res.send({
-											"code":400,
-											"failed":"error ocurred"
-											})
-										}else{
-											if(rows1.affectedRows == 1){
-												var filename = __dirname + '/newdesign/cashier.ejs';
-												var options = {}
-												var data = {rel: 'proware'}
-												ejs.renderFile(filename, data, options, function(err, str){
-													res.send(str);
-												});	
-											}
-											else{
-												console.log();
-													res.send({
-													"code":204,
-													"success":"Email does not exits"
+									data = {
+										allow: false,
+										msg:'Error!'
+									}
+									res.send(data)
+								} else {
+									if(rows.length > 0){
+										console.log("2")
+										for(var i=0; i< rows.length; i++){
+											day++;
+										}
+										if (day != 0) {
+											console.log("3")
+											var sql_string = "SELECT * FROM reservation WHERE student_id = '"+ sess.studentid +"' and date = '" + datenow + "' and counter = 'proware';";
+											con.query(sql_string , function(err, rows1, fields) {
+												if (err) {
+													data = {
+														allow: false,
+														msg:'Error!'
+													}
+													res.send(data)
+												} else {
+													if(rows.length > 0){
+														if(queue <= day) {
+															console.log("4")
+															var sql_string = "SELECT * FROM student WHERE student_id = '" + sess.studentid + "';";
+															con.query(sql_string , function(err, rows1, fields) {
+																var ownqueue = rows1[0].queue_number;
+																if (err) {
+																	data = {
+																		allow: false,
+																		msg:'Error!'
+																	}
+																	res.send(data)
+																} else if (ownqueue == null) {
+																	console.log("5")
+																	//change the stdnt to sess.studentid
+																	var sql_string = "UPDATE student SET counter = 'proware', queue_number = '" + queue + "' WHERE student_id = " + sess.studentid;
+																	con.query(sql_string , function(err, rows1, fields) {
+																		if (err) {
+																			data = {
+																				allow: false,
+																				msg:'Error!'
+																			}
+																			res.send(data)
+																		}else{
+																			if(rows1.affectedRows == 1){
+																				console.log("6")
+																				var str = "UPDATE proware SET queue_line = '" + queue + "'";
+																				con.query(str , function(err, rows2, fields) {
+																				if (err) {
+																					data = {
+																						allow: false,
+																						msg:'Error!'
+																					}
+																					res.send(data)
+																				}else{
+																					if(rows1.affectedRows == 1){
+																						if (obj.validator == 'false') {
+																							var data = {allow: true}
+																							res.send(data);
+																						} else {
+																							console.log("7")
+																							var filename = __dirname + '/newdesign/cashier.ejs';
+																							var options = {}
+																							var data = {rel: 'proware', queue: queue}
+																							ejs.renderFile(filename, data, options, function(err, str){
+																								res.send(str);
+																							});	
+																						}
+																					}
+																					else{
+																						data = {
+																							allow: false,
+																							msg:'Error!'
+																						}
+																						res.send(data)
+																					}
+																				}
+																				});
+																			}
+																			else{
+																				data = {
+																					allow: false,
+																					msg:'Error!'
+																				}
+																				res.send(data)
+																			}
+																		}
+																	});
+																}else{
+																	var filename = __dirname + '/newdesign/cashier.ejs';
+																	var options = {}
+																	var data = {rel: 'proware', queue: queue}
+																	ejs.renderFile(filename, data, options, function(err, str){
+																		res.send(str);
+																	});
+																}
+															});
+														}
+														else {
+															data = {
+																allow: false,
+																msg:'Full!'
+															}
+															res.send(data)
+														}
+													} else { 
+														console.log("8")
+														line -= day;
+														if(queue <= line) {
+															var sql_string = "SELECT * FROM student WHERE student_id = '" + sess.studentid + "';";
+															con.query(sql_string , function(err, rows1, fields) {
+																var ownqueue = rows1[0].queue_number;
+																if (err) {
+																	data = {
+																		allow: false,
+																		msg:'Error!'
+																	}
+																	res.send(data)
+																} else if (ownqueue == null) {
+																	console.log("9")
+																	//change the stdnt to sess.studentid
+																	var sql_string = "UPDATE student SET counter = 'proware', queue_number = " + queue + " WHERE student_id = " + sess.studentid;
+																	con.query(sql_string , function(err, rows1, fields) {
+																		if (err) {
+																			data = {
+																				allow: false,
+																				msg:'Error!'
+																			}
+																			res.send(data)
+																		}else{
+																			if(rows1.affectedRows == 1){
+																				console.log("10")
+																				var str = "UPDATE proware SET queue_line = '" + queue + "'";
+																				con.query(str , function(err, rows2, fields) {
+																				if (err) {
+																					data = {
+																						allow: false,
+																						msg:'Error!'
+																					}
+																					res.send(data)
+																				}else{
+																					if(rows1.affectedRows == 1){
+																						console.log("11")
+																						if (obj.validator == 'false') {
+																							var data = {allow: true}
+																							res.send(data);
+																						} else {
+																							var filename = __dirname + '/newdesign/cashier.ejs';
+																							var options = {}
+																							var data = {rel: 'proware', queue: queue}
+																							ejs.renderFile(filename, data, options, function(err, str){
+																								res.send(str);
+																							});	
+																						}
+																					}
+																					else{
+																						data = {
+																							allow: false,
+																							msg:'Error!'
+																						}
+																						res.send(data)
+																					}
+																				}
+																				});
+																			}
+																			else{
+																				data = {
+																					allow: false,
+																					msg:'Error!'
+																				}
+																				res.send(data)
+																			}
+																		}
+																	});
+																}else{
+																	var filename = __dirname + '/newdesign/cashier.ejs';
+																	var options = {}
+																	var data = {rel: 'proware', queue: queue}
+																	ejs.renderFile(filename, data, options, function(err, str){
+																		res.send(str);
+																	});
+																}
+															});
+														}
+														else {
+															data = {
+																allow: false,
+																msg:'Full!'
+															}
+															res.send(data)
+														}
+													}
+												}
+											});
+										} else {
+											if(queue <= line) {
+												console.log("12")
+												var sql_string = "SELECT * FROM student WHERE student_id = '" + sess.studentid + "';";
+												con.query(sql_string , function(err, rows1, fields) {
+													var ownqueue = rows1[0].queue_number;
+													if (err) {
+														data = {
+															allow: false,
+															msg:'Error!'
+														}
+														res.send(data)
+													} else if (ownqueue == null) {
+														console.log("13")
+														//change the stdnt to sess.studentid
+														var sql_string = "UPDATE student SET counter = 'proware', queue_number = '" + queue + "' WHERE student_id = " + sess.studentid;
+														con.query(sql_string , function(err, rows1, fields) {
+															if (err) {
+																data = {
+																	allow: false,
+																	msg:'Error!'
+																}
+																res.send(data)
+															}else{
+																if(rows1.affectedRows == 1){
+																	console.log("14")
+																	var str = "UPDATE proware SET queue_line = '" + queue + "'";
+																	con.query(str , function(err, rows2, fields) {
+																	if (err) {
+																		data = {
+																			allow: false,
+																			msg:'Error!'
+																		}
+																		res.send(data)
+																	}else{
+																		if(rows1.affectedRows == 1){
+																			console.log("15")
+																			if (obj.validator == 'false') {
+																				var data = {allow: true}
+																				res.send(data);
+																			} else {
+																				var filename = __dirname + '/newdesign/cashier.ejs';
+																				var options = {}
+																				var data = {rel: 'proware', queue: queue}
+																				ejs.renderFile(filename, data, options, function(err, str){
+																					res.send(str);
+																				});	
+																			}
+																		}
+																		else{
+																			data = {
+																				allow: false,
+																				msg:'Error!'
+																			}
+																			res.send(data)
+																		}
+																	}
+																	});
+																}
+																else{
+																	data = {
+																		allow: false,
+																		msg:'Error!'
+																	}
+																	res.send(data)
+																}
+															}
+														});
+													}else{
+														var filename = __dirname + '/newdesign/cashier.ejs';
+														var options = {}
+														var data = {rel: 'proware', queue: queue}
+														ejs.renderFile(filename, data, options, function(err, str){
+															res.send(str);
+														});
+													}
 												});
 											}
+											else {
+												data = {
+													allow: false,
+													msg:'Full!'
+												}
+												res.send(data)
+											}
 										}
-										});
-									}
-									else{
-										res.send({
-										"code":204,
-										"success":"Email does not exits"
-										});
+									} else {
+										data = {
+											allow: false,
+											msg:'No reservation!'
+										}
+										res.send(data)
 									}
 								}
 							});
-						}else{
-							var filename = __dirname + '/newdesign/cashier.ejs';
-							var options = {}
-							var data = {rel: 'proware'}
-							ejs.renderFile(filename, data, options, function(err, str){
-								res.send(str);
-							});
+						} else {
+							if(queue <= line) {
+								console.log("16")
+								var sql_string = "SELECT * FROM student WHERE student_id = '" + sess.studentid + "';";
+								con.query(sql_string , function(err, rows1, fields) {
+									var ownqueue = rows1[0].queue_number;
+									if (err) {
+										data = {
+											allow: false,
+											msg:'Error!'
+										}
+										res.send(data)
+									} else if (ownqueue == null) {
+										console.log("17")
+										//change the stdnt to sess.studentid
+										var sql_string = "UPDATE student SET counter = 'proware', queue_number = '" + queue + "' WHERE student_id = " + sess.studentid;
+										con.query(sql_string , function(err, rows1, fields) {
+											if (err) {
+												data = {
+													allow: false,
+													msg:'Error!'
+												}
+												res.send(data)
+											}else{
+												if(rows1.affectedRows == 1){
+													console.log("18")
+													var str = "UPDATE proware SET queue_line = '" + queue + "'";
+													con.query(str , function(err, rows2, fields) {
+													if (err) {
+														data = {
+															allow: false,
+															msg:'Error!'
+														}
+														res.send(data)
+													}else{
+														if(rows1.affectedRows == 1){
+															if (obj.validator == 'false') {
+																var data = {allow: true}
+																res.send(data);
+															} else {
+																console.log("19")
+																var filename = __dirname + '/newdesign/cashier.ejs';
+																var options = {}
+																var data = {rel: 'proware', queue: queue}
+																ejs.renderFile(filename, data, options, function(err, str){
+																	res.send(str);
+																});	
+															}
+														}
+														else{
+															data = {
+																allow: false,
+																msg:'Error!'
+															}
+															res.send(data)
+														}
+													}
+													});
+												}
+												else{
+													data = {
+														allow: false,
+														msg:'Error!'
+													}
+													res.send(data)
+												}
+											}
+										});
+									}else{
+										var filename = __dirname + '/newdesign/cashier.ejs';
+										var options = {}
+										var data = {rel: 'proware', queue: queue}
+										ejs.renderFile(filename, data, options, function(err, str){
+											res.send(str);
+										});
+									}
+								});
+							}
+							else {
+								data = {
+									allow: false,
+									msg:'Full!'
+								}
+								res.send(data)
+							}
 						}
-					});
+					}
 				}
 				else{
-					res.send({
-					"code":204,
-					"success":"Email does not exits"
-					});
+					data = {
+						allow: false,
+						msg:'Error!'
+					}
+					res.send(data)
 				}
+			} else {
+				data = {
+					allow: false,
+					msg:'Error!'
+				}
+				res.send(data)
 			}
 		}
 	});	
@@ -841,15 +2216,15 @@ app.post('/slot', enCoded, function(req,res) {
 					}else{
 						var sql_string2 = "SELECT * FROM reservation WHERE student_id = " + sess.studentid + ";";
 						con.query(sql_string2 , function(err, rows, fields) {
-							var slot = rows.slot;
+							var slot = rows[0].slot;
 							if (err) {
 								data = {
 									allow: false,
-									msg:'Error selecting reservation!'
+									msg:'Error!'
 								}
 								res.send(data)
 							}else{
-									var sql_string1 = "UPDATE student SET slot = "+ slot + " WHERE student_id = " + sess.studentid;
+									var sql_string1 = "UPDATE student SET slot = "+ slot + ", counter = "+table+" WHERE student_id = " + sess.studentid;
 									con.query(sql_string1 , function(err, rows, fields) {
 										if (err) {
 											data = {
@@ -881,16 +2256,39 @@ app.post('/slot', enCoded, function(req,res) {
 					if (err) {
 						data = {
 							allow: false,
-							msg:'Error updating!'
+							msg:'Error reservation!'
 						}
 						res.send(data)
 					}else{
-						var filename = __dirname + '/newdesign/home.ejs';
-						var options = {}
-						var data = {studentnumber: '',passwords: ''}
-						ejs.renderFile(filename, data, options, function(err, str){
-							res.send(str);
-						});	
+						var sql_string2 = "SELECT * FROM reservation WHERE student_id = " + sess.studentid + ";";
+						con.query(sql_string2 , function(err, rows, fields) {
+							var slot = rows[0].slot;
+							if (err) {
+								data = {
+									allow: false,
+									msg:'Error!'
+								}
+								res.send(data)
+							}else{
+									var sql_string1 = "UPDATE student SET slot = '"+ slot + "', counter = '"+table+"' WHERE student_id = '" + sess.studentid+"';";
+									con.query(sql_string1 , function(err, rows, fields) {
+										if (err) {
+											data = {
+												allow: false,
+												msg:'Error Updating!'
+											}
+											res.send(data)
+										}else{
+												var filename = __dirname + '/newdesign/home.ejs';
+												var options = {}
+												var data = {studentnumber: '',passwords: ''}
+												ejs.renderFile(filename, data, options, function(err, str){
+												res.send(str);
+												});
+										}
+									});
+							}
+						});
 					}
 				});
 			}
@@ -919,96 +2317,427 @@ app.get('/transactiondone', function(req,res,html) {
 });
 
 app.get('/nexttransaction', function(req,res,html) {
+	var obj = {
+		validator:req.query.validator
+	};
 	var bt = req.query.cnl;
-	
+	//Remove comment for session
 	sess= req.session;
-	console.log(sess.studentid);
-	
-	//remove this variable
+	var date=new Date();
+	var datenow = date.toDateString();
+	console.log(datenow);
+	//comment this variable
 	//var stdnt = "10000125512";
 	var sql_string = "SELECT * FROM "+ bt +";";
 	con.query(sql_string , function(err, rows, fields) {
-		var q = rows[0].queue_line;
-		var queue = parseInt(q) + 1;
-		var current_number = rows[0].current_number;
-		console.log(q,current_number);
 		if (err) {
-			res.send({
-			"code":400,
-			"failed":"error ocurred at 1"
-			})
+			data = {
+				allow: false,
+				msg:'Wrong QR Code!'
+			}
+			res.send(data)
 		}else{
 			if(rows.length >0){
-				if(queue <= 80) {
-					var sql_string = "SELECT * FROM student WHERE student_id = " + sess.studentid + ";";
-					con.query(sql_string , function(err, rows1, fields) {
-						var ownqueue = rows1[0].queue_number;
-						if (err) {
-							res.send({
-							"code":400,
-							"failed":"error ocurred"
-							})
-						} else if (ownqueue == null) {
-							//change the stdnt to sess.studentid
-							var sql_string = "UPDATE student SET counter = '"+ bt +"', queue_number = " + queue + " WHERE student_id = " + sess.studentid;
+				var day = 0;
+				var line = 100;
+				var slot = rows[0].slot_reservation;
+				var q = rows[0].queue_line;
+				var queue = parseInt(q) + 1;
+				var current_number = rows[0].current_number;
+				console.log(q,current_number);
+					if (obj.validator == 'false') {
+						var data = {allow: true}
+						res.send(data);
+					} else {
+						if(slot != null){
+							console.log("1")
+							var sql_string = "SELECT * FROM reservation WHERE date = '" + datenow + "' and counter = '"+ bt +"';";
 							con.query(sql_string , function(err, rows1, fields) {
 								if (err) {
-									res.send({
-									"code":400,
-									"failed":"error ocurred"
-									})
-								}else{
-									if(rows1.affectedRows == 1){
-										var str = "UPDATE "+ bt +" SET queue_line = " + queue + "";
-										con.query(str , function(err, rows2, fields) {
-										if (err) {
-											res.send({
-											"code":400,
-											"failed":"error ocurred"
-											})
-										}else{
-											if(rows1.affectedRows == 1){
-												var filename = __dirname + '/newdesign/cashier.ejs';
-												var options = {}
-												var data = {rel: bt}
-												ejs.renderFile(filename, data, options, function(err, str){
-													res.send(str);
-												});	
-											}
-											else{
-												console.log();
-													res.send({
-													"code":204,
-													"success":"Email does not exits"
+									data = {
+										allow: false,
+										msg:'Error!'
+									}
+									res.send(data)
+								} else {
+									if(rows.length > 0){
+										console.log("2")
+										for(var i=0; i< rows.length; i++){
+											day++;
+										}
+										if (day != 0) {
+											console.log("3")
+											var sql_string = "SELECT * FROM reservation WHERE student_id = '"+ sess.studentid +"' and date = '" + datenow + "' and counter = '"+ bt +"';";
+											con.query(sql_string , function(err, rows1, fields) {
+												if (err) {
+													data = {
+														allow: false,
+														msg:'Error!'
+													}
+													res.send(data)
+												} else {
+													if(rows.length > 0){
+														if(queue <= day) {
+															console.log("4")
+															var sql_string = "SELECT * FROM student WHERE student_id = '" + sess.studentid + "';";
+															con.query(sql_string , function(err, rows1, fields) {
+																var ownqueue = rows1[0].queue_number;
+																if (err) {
+																	data = {
+																		allow: false,
+																		msg:'Error!'
+																	}
+																	res.send(data)
+																} else if (ownqueue == null) {
+																	console.log("5")
+																	//change the stdnt to sess.studentid
+																	var sql_string = "UPDATE student SET counter = '"+ bt +"', queue_number = '" + queue + "' WHERE student_id = " + sess.studentid;
+																	con.query(sql_string , function(err, rows1, fields) {
+																		if (err) {
+																			data = {
+																				allow: false,
+																				msg:'Error!'
+																			}
+																			res.send(data)
+																		}else{
+																			if(rows1.affectedRows == 1){
+																				console.log("6")
+																				var str = "UPDATE "+ bt +" SET queue_line = '" + queue + "'";
+																				con.query(str , function(err, rows2, fields) {
+																				if (err) {
+																					data = {
+																						allow: false,
+																						msg:'Error!'
+																					}
+																					res.send(data)
+																				}else{
+																					if(rows1.affectedRows == 1){
+																						if (obj.validator == 'false') {
+																							var data = {allow: true}
+																							res.send(data);
+																						} else {
+																							console.log("7")
+																							var filename = __dirname + '/newdesign/cashier.ejs';
+																							var options = {}
+																							var data = {rel: bt, queue: queue}
+																							ejs.renderFile(filename, data, options, function(err, str){
+																								res.send(str);
+																							});	
+																						}
+																					}
+																					else{
+																						data = {
+																							allow: false,
+																							msg:'Error!'
+																						}
+																						res.send(data)
+																					}
+																				}
+																				});
+																			}
+																			else{
+																				data = {
+																					allow: false,
+																					msg:'Error!'
+																				}
+																				res.send(data)
+																			}
+																		}
+																	});
+																}else{
+																	var filename = __dirname + '/newdesign/cashier.ejs';
+																	var options = {}
+																	var data = {rel: bt, queue: queue}
+																	ejs.renderFile(filename, data, options, function(err, str){
+																		res.send(str);
+																	});
+																}
+															});
+														}
+														else {
+															data = {
+																allow: false,
+																msg:'Full!'
+															}
+															res.send(data)
+														}
+													} else { 
+														console.log("8")
+														line -= day;
+														if(queue <= line) {
+															var sql_string = "SELECT * FROM student WHERE student_id = '" + sess.studentid + "';";
+															con.query(sql_string , function(err, rows1, fields) {
+																var ownqueue = rows1[0].queue_number;
+																if (err) {
+																	data = {
+																		allow: false,
+																		msg:'Error!'
+																	}
+																	res.send(data)
+																} else if (ownqueue == null) {
+																	console.log("9")
+																	//change the stdnt to sess.studentid
+																	var sql_string = "UPDATE student SET counter = '"+ bt +"', queue_number = " + queue + " WHERE student_id = " + sess.studentid;
+																	con.query(sql_string , function(err, rows1, fields) {
+																		if (err) {
+																			data = {
+																				allow: false,
+																				msg:'Error!'
+																			}
+																			res.send(data)
+																		}else{
+																			if(rows1.affectedRows == 1){
+																				console.log("10")
+																				var str = "UPDATE "+ bt +" SET queue_line = '" + queue + "'";
+																				con.query(str , function(err, rows2, fields) {
+																				if (err) {
+																					data = {
+																						allow: false,
+																						msg:'Error!'
+																					}
+																					res.send(data)
+																				}else{
+																					if(rows1.affectedRows == 1){
+																						console.log("11")
+																						if (obj.validator == 'false') {
+																							var data = {allow: true}
+																							res.send(data);
+																						} else {
+																							var filename = __dirname + '/newdesign/cashier.ejs';
+																							var options = {}
+																							var data = {rel: bt, queue: queue}
+																							ejs.renderFile(filename, data, options, function(err, str){
+																								res.send(str);
+																							});	
+																						}
+																					}
+																					else{
+																						data = {
+																							allow: false,
+																							msg:'Error!'
+																						}
+																						res.send(data)
+																					}
+																				}
+																				});
+																			}
+																			else{
+																				data = {
+																					allow: false,
+																					msg:'Error!'
+																				}
+																				res.send(data)
+																			}
+																		}
+																	});
+																}else{
+																	var filename = __dirname + '/newdesign/cashier.ejs';
+																	var options = {}
+																	var data = {rel: bt, queue: queue}
+																	ejs.renderFile(filename, data, options, function(err, str){
+																		res.send(str);
+																	});
+																}
+															});
+														}
+														else {
+															data = {
+																allow: false,
+																msg:'Full!'
+															}
+															res.send(data)
+														}
+													}
+												}
+											});
+										} else {
+											if(queue <= line) {
+												console.log("12")
+												var sql_string = "SELECT * FROM student WHERE student_id = '" + sess.studentid + "';";
+												con.query(sql_string , function(err, rows1, fields) {
+													var ownqueue = rows1[0].queue_number;
+													if (err) {
+														data = {
+															allow: false,
+															msg:'Error!'
+														}
+														res.send(data)
+													} else if (ownqueue == null) {
+														console.log("13")
+														//change the stdnt to sess.studentid
+														var sql_string = "UPDATE student SET counter = '"+ bt +"', queue_number = '" + queue + "' WHERE student_id = " + sess.studentid;
+														con.query(sql_string , function(err, rows1, fields) {
+															if (err) {
+																data = {
+																	allow: false,
+																	msg:'Error!'
+																}
+																res.send(data)
+															}else{
+																if(rows1.affectedRows == 1){
+																	console.log("14")
+																	var str = "UPDATE "+ bt +" SET queue_line = '" + queue + "'";
+																	con.query(str , function(err, rows2, fields) {
+																	if (err) {
+																		data = {
+																			allow: false,
+																			msg:'Error!'
+																		}
+																		res.send(data)
+																	}else{
+																		if(rows1.affectedRows == 1){
+																			console.log("15")
+																			if (obj.validator == 'false') {
+																				var data = {allow: true}
+																				res.send(data);
+																			} else {
+																				var filename = __dirname + '/newdesign/cashier.ejs';
+																				var options = {}
+																				var data = {rel: bt, queue: queue}
+																				ejs.renderFile(filename, data, options, function(err, str){
+																					res.send(str);
+																				});	
+																			}
+																		}
+																		else{
+																			data = {
+																				allow: false,
+																				msg:'Error!'
+																			}
+																			res.send(data)
+																		}
+																	}
+																	});
+																}
+																else{
+																	data = {
+																		allow: false,
+																		msg:'Error!'
+																	}
+																	res.send(data)
+																}
+															}
+														});
+													}else{
+														var filename = __dirname + '/newdesign/cashier.ejs';
+														var options = {}
+														var data = {rel: bt, queue: queue}
+														ejs.renderFile(filename, data, options, function(err, str){
+															res.send(str);
+														});
+													}
 												});
 											}
+											else {
+												data = {
+													allow: false,
+													msg:'Full!'
+												}
+												res.send(data)
+											}
 										}
-										});
-									}
-									else{
-										res.send({
-										"code":204,
-										"success":"Email does not exits"
-										});
+									} else {
+										data = {
+											allow: false,
+											msg:'No reservation!'
+										}
+										res.send(data)
 									}
 								}
 							});
-						}else{
-							var filename = __dirname + '/newdesign/cashier.ejs';
-							var options = {}
-							var data = {rel: bt}
-							ejs.renderFile(filename, data, options, function(err, str){
-								res.send(str);
-							});
+						} else {
+							if(queue <= line) {
+								console.log("16")
+								var sql_string = "SELECT * FROM student WHERE student_id = '" + sess.studentid + "';";
+								con.query(sql_string , function(err, rows1, fields) {
+									var ownqueue = rows1[0].queue_number;
+									if (err) {
+										data = {
+											allow: false,
+											msg:'Error!'
+										}
+										res.send(data)
+									} else if (ownqueue == null) {
+										console.log("17")
+										//change the stdnt to sess.studentid
+										var sql_string = "UPDATE student SET counter = '"+ bt +"', queue_number = '" + queue + "' WHERE student_id = " + sess.studentid;
+										con.query(sql_string , function(err, rows1, fields) {
+											if (err) {
+												data = {
+													allow: false,
+													msg:'Error!'
+												}
+												res.send(data)
+											}else{
+												if(rows1.affectedRows == 1){
+													console.log("18")
+													var str = "UPDATE "+ bt +" SET queue_line = '" + queue + "'";
+													con.query(str , function(err, rows2, fields) {
+													if (err) {
+														data = {
+															allow: false,
+															msg:'Error!'
+														}
+														res.send(data)
+													}else{
+														if(rows1.affectedRows == 1){
+															if (obj.validator == 'false') {
+																var data = {allow: true}
+																res.send(data);
+															} else {
+																console.log("19")
+																var filename = __dirname + '/newdesign/cashier.ejs';
+																var options = {}
+																var data = {rel: bt, queue: queue}
+																ejs.renderFile(filename, data, options, function(err, str){
+																	res.send(str);
+																});	
+															}
+														}
+														else{
+															data = {
+																allow: false,
+																msg:'Error!'
+															}
+															res.send(data)
+														}
+													}
+													});
+												}
+												else{
+													data = {
+														allow: false,
+														msg:'Error!'
+													}
+													res.send(data)
+												}
+											}
+										});
+									}else{
+										var filename = __dirname + '/newdesign/cashier.ejs';
+										var options = {}
+										var data = {rel: bt, queue: queue}
+										ejs.renderFile(filename, data, options, function(err, str){
+											res.send(str);
+										});
+									}
+								});
+							}
+							else {
+								data = {
+									allow: false,
+									msg:'Full!'
+								}
+								res.send(data)
+							}
 						}
-					});
+					}
+			} else {
+				data = {
+					allow: false,
+					msg:'Error!'
 				}
-				else{
-					res.send({
-					"code":204,
-					"success":"Email does not exits"
-					});
-				}
+				res.send(data)
 			}
 		}
 	});	
