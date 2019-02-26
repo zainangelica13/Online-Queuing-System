@@ -377,6 +377,7 @@ body[class*=jconfirm-no-scroll-] {
     font-family: inherit;
     display: inline-block;
     vertical-align: middle;
+    font-weight: normal;
 }
 
 .jconfirm .jconfirm-box div.jconfirm-title-c .jconfirm-title:empty {
