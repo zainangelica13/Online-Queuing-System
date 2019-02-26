@@ -37,8 +37,8 @@
 				<h1><a href="#"> <img src="sti.png" alt="STI College Icon" style="height:44px"> </a></h1> <br>
 				<nav id="nav">
 					<ul>
-						<li><a href="/home">Home</a></li>
-						<li><a href="/" class="button special" id="logout">Log Out</a></li>
+						<li><a href="/">Home</a></li>
+						<li><a href="/logout" class="button special" id="logout">Log Out</a></li>
 					</ul>
 				</nav>
 			</header>
@@ -74,7 +74,18 @@
 <script type="text/javascript">
 	$(document).ready(function() {
 
+	window.addEventListener( "pageshow", function ( event ) {
+		var historyTraversal = event.persisted || 
+		                    ( typeof window.performance != "undefined" && 
+		                    	window.performance.navigation.type === 2 );
+		if ( historyTraversal ) {
+		// Handle page restore.
+		window.location.reload();
+		}
+	});
+
 		var code_checker = "";
+		var allow=false;
 
 		$('#generate').click(function(){
 
@@ -96,35 +107,79 @@
 		});
 
 		$('#print').click(function(e) {
-			e.preventDefault();
 
-			if (code_checker != ""){
-				$('#print_form').submit();
-			} else {
-				
-				$.alert({
-				    title: 'Error!',
-				    content: 'Please generate QR CODE first.',
-				    icon: 'fa fa-warning',
-					type: 'blue',
-				    buttons: {
-				    	Okay:{
-					    	text: 'Okay',
-					    	btnClass:'btn-blue',
-					    	keys:['esc','space']
-					    }	
-				    }
-				});
+			var formData = {
+				qr_code : $('[name="qr_code"]').val(),
+				validator : allow
+			};
+
+			if (!allow) {
+				e.preventDefault();
+				if (code_checker == ""){
+					$.alert({
+					    title: 'Error!',
+					    content: 'Please generate QR CODE first.',
+					    icon: 'fa fa-warning',
+						type: 'blue',
+					    buttons: {
+					    	Okay:{
+						    	text: 'Okay',
+						    	btnClass:'btn-blue',
+						    	keys:['esc','space']
+						    }	
+					    }
+					});					
+				} else {
+					$.ajax({
+						type: 'post',
+						url: 'http://localhost:3000/print',
+						dataType: 'json',
+						data: formData
+					})
+					.done(function(data) {
+						if (data.allow == false) {;
+							$.alert({
+							    title: 'QR Code Error!',
+							    content: data.msg,
+							    icon: 'fa fa-warning',
+							    type: 'blue',
+							    buttons: {
+							    	Okay:{
+								    	text: 'Okay',
+								    	btnClass:'btn-blue',
+								    	keys:['esc','space']
+								    }	
+							    }
+							});
+						} else {
+							allow = data.allow;
+							$('#print').click();
+						}
+					})
+					.fail(function(jqXHR, textStatus, err) {
+						$.alert({
+						    title: 'Error',
+						    content: 'Error',
+						    icon: 'fa fa-warning',
+							type: 'blue',
+						    buttons: {
+						    	Okay:{
+							    	text: 'Okay',
+							    	btnClass:'btn-blue',
+							    	keys:['esc','space']
+							    }	
+						    }
+						});
+					});
+				}
 			}
 		});
-
-		var allow=false;
 
 		$('#logout').click(function(e) {
 
 			if (!allow) {
 				e.preventDefault();
-
+				console.log(allow);
 				$.confirm({
 				    title: 'Confirmation',
 				    content: 'Are you sure you want to log out?',
@@ -136,7 +191,7 @@
 				        	btnClass:'btn-blue',
 				        	keys:['space'],
 				        	action: function(){
-				        		allow=true;
+								allow=true;
 				        		console.log(allow);
 		        				$('#logout').click();
 				        	}
@@ -152,10 +207,9 @@
 				    }
 				});
 			} else {
-				window.location.href = '/';
+				window.location.href = '/logout';
 			}
 		});
-
 	});
 </script>
 
