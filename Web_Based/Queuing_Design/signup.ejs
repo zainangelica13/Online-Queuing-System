@@ -9,16 +9,51 @@
 		<script src="js/jquery.min.js"></script>
 		<script src="js/skel.min.js"></script>
 		<script src="js/init.js"></script>
+		<script src="js/jquery-confirm.js"></script>
+
 		<noscript>
 			<link rel="stylesheet" href="css/skel.css" />
 			<link rel="stylesheet" href="css/style.css" />
 			<link rel="stylesheet" href="css/style-xlarge.css" />
 		</noscript>
+		<link rel="stylesheet" href="css/jquery-confirm.css" />
+
+		<style type="text/css">
+			.jc-bs3-container{
+				text-align: center;
+			}
+
+			.jc-bs3-row{
+				display: inline-block;
+				text-align: left;
+			}
+			input{
+				margin-top: 5px;
+			}
+			select{
+				-webkit-appearance: menulist;
+				margin-top: 5px;
+			}
+			option{
+				background: rgb(83, 122, 157);
+				color: #ffffff;
+			}
+			option[value=""] {
+				display: none;
+			}
+			
+
+		</style>
 	</head>
 	<body id="top">
 
 			<header id="header" class="skel-layers-fixed">
-				<h1><a href="#"> <img src="sti.png" alt="STI College Icon" style="margin-top: 5px;" width="100" height="46"> </a></h1> <br>
+				<h1><a href="#"> <img src="sti.png" alt="STI College Icon" style="height:44px"> </a></h1> <br>
+				<nav id="nav">
+					<ul>
+						<li><a href="/" class="button special" id="logout">Back</a></li>
+					</ul>
+				</nav>
 			</header>
 
 			<section id="one" class="wrapper style1">
@@ -32,9 +67,15 @@
 								<i class="icon fa-user major"></i>
 								<form action="/back" method="POST" id="sign-up">
 									<input type="text" id="id_no" name="id_no" placeholder="ID number"/>
-									<input type="text" id="name" name="name" placeholder="Full Name"/>		
-									<input type="text" id="designation" name="designation" placeholder="Designation"/>	
-									<input style="margin-top: 5px" type="text" id="pass" name="pass" placeholder="Password"/> <br>
+									<input type="text" id="name" name="name" placeholder="Full Name"/>
+									<select name="designation" id="designation">
+										<option value="" selected disabled>Designation</option>
+										<option value="cashier">Cashier</option>
+										<option value="registrar">Registrar</option>
+										<option value="enrollment">Enrollment</option>
+										<option value="proware">Proware</option>
+									</select>
+									<input type="password" id="pass" name="pass" placeholder="Password"/> <br>
 									<input type="submit" id="register" name="button" value="Sign up"/>
 								</form>
 							</section>
@@ -46,22 +87,75 @@
 
 			<script type="text/javascript">
 				$(document).ready(function() {
-					// Contents
+
 					var allow = false;
 					$('#register').on('click',function(e) {
 						if (!allow) {
 							e.preventDefault();
 
-							var id_no = $('#id_no').val();
-							var name = $('#name').val();
-							var designation = $('#designation').val();
-							var pass = $('#pass').val();
-
-							if (id_no == '' || name == ''||designation == '' || pass == '') {
-								alert('Please fill empty textboxes');
+							var formData = {
+								id_no : $('#id_no').val(),
+								name : $('#name').val(),
+								designation : $('#designation').val(),
+								pass : $('#pass').val(),
+								validator : allow
+							};
+							if (formData.id_no == '' || formData.name == ''|| formData.designation == null || formData.pass == '') {
+								$.alert({
+								    title: 'Sign up error!',
+								    content: 'Please fill all textboxes!',
+								    icon: 'fa fa-warning',
+								    type: 'blue',
+								    buttons: {
+								    	Okay:{
+									    	text: 'Okay',
+									    	btnClass:'btn-blue',
+									    	keys:['esc','space']
+									    }	
+								    }
+								});
 							} else {
-								allow = true;
-								$('#register').click();
+								$.ajax({
+									type: 'post',
+									url: 'http://localhost:3000/back',
+									dataType: 'json',
+									data: formData
+								})
+								.done(function(data) {
+									if (data.allow == false) {;
+										$.alert({
+										    title: 'Sign up error!',
+										    content: data.msg,
+										    icon: 'fa fa-warning',
+										    type: 'blue',
+										    buttons: {
+										    	Okay:{
+											    	text: 'Okay',
+											    	btnClass:'btn-blue',
+											    	keys:['esc','space']
+											    }	
+										    }
+										});
+									} else {
+										allow = data.allow;
+										$('#register').click();
+									}
+								})
+								.fail(function(jqXHR, textStatus, err) {
+									$.alert({
+									    title: 'Error',
+									    content: 'Error',
+									    icon: 'fa fa-warning',
+										type: 'blue',
+									    buttons: {
+									    	Okay:{
+										    	text: 'Okay',
+										    	btnClass:'btn-blue',
+										    	keys:['esc','space']
+										    }	
+									    }
+									});
+								});
 							}
 						}
 					});
