@@ -45,38 +45,8 @@ app.use(session({
 var sess;
 
 app.get('/', function(req, res) {
-	//req.session = null
 	sess = req.session;
-	console.log("pota \t"+req.session);
-	if (sess.id_no) {
-		res.redirect('/home');
-	} else {
-		var filename = __dirname + '/Queuing_Design/login.ejs';
-		var options = {}
-	    var data = {studentnumber: '',password: ''}
-		ejs.renderFile(filename, data, options, function(err, str){
-			res.send(str);
-		});
-	}
-});
 
-app.get('/logout', function(req, res) {
-	
-	req.session = null
-
-			res.redirect('/');
-
-		
-
-	
-});
-
-app.get('/home', function(req,res) {
-
-	sess = req.session;
-	console.log("watafak \t"+sess.id_no)
-
-	console.log("fuck \t"+req.session);
 	if (sess.id_no) {
 		var filename = __dirname + '/Queuing_Design/index.ejs';
 		var options = {}
@@ -94,6 +64,19 @@ app.get('/home', function(req,res) {
 	}
 });
 
+app.get('/logout', function(req, res) {
+	
+	req.session.destroy(function(err){
+		if (err) {
+			console.log(err);
+		} else {
+			res.redirect('/');
+		}
+		
+	})
+	
+});
+
 app.get('/signup', function(req,res) {
 
 	var filename = __dirname + '/Queuing_Design/signup.ejs';
@@ -105,33 +88,51 @@ app.get('/signup', function(req,res) {
 });
 
 app.get('/back', function(req,res) {
-		res.render('command', {qs: req.query});
-	});
+	res.redirect('/');
+});
+
 app.post('/back', enCoded, function(req,res) {
 	var idnumber= req.body.id_no;
 	var name = req.body.name;
 	var designation= req.body.designation;
 	var pass = req.body.pass;
+	var validator = req.body.validator;
 	
-	var sql_string = "INSERT INTO users VALUES ('"+idnumber+"','"+name+"','"+designation+"','"+pass+"');";
+	var sql_string = "SELECT id_number FROM users WHERE id_number = "+idnumber+";";
 		con.query(sql_string , function(err, rows, fields)
 		{
 			if (err) {
-				res.send({
-					"Code":204,
-					"success":"error occured"
-				});
+				console.log('Error!');
+			} else {
+				if(rows.length > 0) {
+					data = {
+						allow: false,
+						msg:'ID number already exist!'
+					}
+					res.send(data);
+				} else {
+					if (validator == 'false') {
+						var data = {allow: true}
+						res.send(data);
+					} else {
+						var sql_string = "INSERT INTO users VALUES ('"+idnumber+"','"+name+"','"+designation+"','"+pass+"');";
+							con.query(sql_string , function(err, rows, fields)
+							{
+								if (err) {
+									console.log('Error!');
+								}
+								else {
+									res.redirect('/');
+								}
+							});
+					}
+				}
 			}
-			else {
-				var filename = __dirname + '/Queuing_Design/login.ejs';
-				var options = {}
-				var data = {rel: ''}
-				ejs.renderFile(filename, data, options, function(err, str){
-					res.send(str);
-				});
+		});	
+});
 
-			}
-		});
+app.get('/login', function(req,res) {
+	res.redirect('/');
 });
 
 app.post('/login', enCoded, function(req,res) {
@@ -143,70 +144,82 @@ app.post('/login', enCoded, function(req,res) {
 	};
 	sess = req.session;
 	sess.id_no = obj.id_no;
+	sess.designation;
 	req.session.save();
-	console.log(sess+'\t'+req.session+'\t'+sess.id_no);
-	
-	var sql_string = "SELECT * FROM users WHERE id_number = "+sess.id_no+";";
-		con.query(sql_string , function(err, rows, fields)
-		{
-			if (err) {
-				console.log('Error!');
-			} else {
-				if(rows.length > 0) {
-					if(rows[0].password == obj.pass){
-						if (obj.validator == 'false') {
-							var data = {allow: true}
-							res.send(data);
+	console.log(sess.id_no+'\n')
+
+	if (sess.id_no) {
+		var sql_string = "SELECT * FROM users WHERE id_number = "+sess.id_no+";";
+			con.query(sql_string , function(err, rows, fields)
+			{
+				if (err) {
+					console.log('Error!');
+				} else {
+					if(rows.length > 0) {
+						if(rows[0].password == obj.pass){
+							if (obj.validator == 'false') {
+								var data = {allow: true}
+								res.send(data);
+							} else {
+								sess.designation = rows[0].designation.charAt(0);
+								console.log(sess.designation);
+								res.redirect('/');
+							}
+							
 						} else {
-							var filename = __dirname + '/Queuing_Design/index.ejs';
-							var options = {}
-							var data = {rel: ''}
-							ejs.renderFile(filename, data, options, function(err, str){
-								res.send(str);
-							});
+							data = {
+								allow: false,
+								msg:'Id number and password does not match!'
+							}
+							res.send(data)
 						}
-						
+						 
 					} else {
 						data = {
 							allow: false,
-							msg:'Id number and password does not match!'
+							msg:'Id number does not exist!'
 						}
 						res.send(data)
 					}
-					 
-				} else {
-					data = {
-						allow: false,
-						msg:'Id number does not exist!'
-					}
-					res.send(data)
 				}
-			}
-		});	
+			});	
+	} else {
+		res.redirect('/');
+	}
+	
 });
 
 app.get('/queue_line', enCoded, function(req,res) {
 
 	sess = req.session;
 
-	var filename = __dirname + '/Queuing_Design/queue_line.ejs';
-	var options = {}
-	var data = {rel: ''}
-	ejs.renderFile(filename, data, options, function(err, str){
-		res.send(str);
-	});
+	if (sess.id_no) {
+		var filename = __dirname + '/Queuing_Design/queue_line.ejs';
+		var options = {}
+		var data = {rel: ''}
+		ejs.renderFile(filename, data, options, function(err, str){
+			res.send(str);
+		});
+	} else {
+		res.redirect('/');
+	}
+		
 });
 
 app.get('/queue_management', enCoded, function(req,res) {
 
 	sess = req.session;
 
-	var filename = __dirname + '/Queuing_Design/queue_management.ejs';
-	var options = {}
-	var data = {rel: ''}
-	ejs.renderFile(filename, data, options, function(err, str){
-		res.send(str);
-	});
+	if (sess.id_no) {
+		var filename = __dirname + '/Queuing_Design/queue_management.ejs';
+		var options = {}
+		var data = {rel: ''}
+		ejs.renderFile(filename, data, options, function(err, str){
+			res.send(str);
+		});
+	} else {
+		res.redirect('/');
+	}
 });	
 
 app.post('/print', enCoded, function(req,res) {
@@ -214,58 +227,75 @@ app.post('/print', enCoded, function(req,res) {
 	sess = req.session;
 
 	var qr_code= req.body.qr_code;
-	
-	var sql_string = "INSERT INTO queue_lines VALUES ( '"+qr_code+"', CURDATE(),'100','0');";
-		con.query(sql_string , function(err, rows, fields)
-		{
-			if (err) {
-				res.send({
-					"Code":204,
-					"success":"error occured"
-				});
-				
-			}
-			else {
-				var filename = __dirname + '/Queuing_Design/index.ejs';
-				var options = {}
-				var data = {rel: ''}
-				ejs.renderFile(filename, data, options, function(err, str){
-					res.send(str);
-				});
+	var validator = req.body.validator;
 
-			}
-		});
+	if (sess.id_no) {
+		var sql_string = "SELECT date FROM queue_lines WHERE date = CURDATE();";
+			con.query(sql_string , function(err, rows, fields)
+			{
+				if (err) {
+					console.log('Error!');
+				} else {
+					if(rows.length > 0) {
+						data = {
+							allow:false,
+							msg:'QR Code already printed this day!'
+						}
+						res.send(data);
+					} else {
+						if (validator == 'false') {
+							var data = {allow: true}
+							res.send(data);
+						} else {
+							var sql_string = "INSERT INTO queue_lines VALUES ( CURDATE(), '"+qr_code+"', '100','0','0','0','0');";
+								con.query(sql_string , function(err, rows, fields)
+								{
+									if (err) {
+										console.log('Error!');
+									}
+									else {
+										res.redirect('/');
+									}
+								});
+						}
+					}
+				}
+			});	
+	} else {
+		res.redirect('/');
+	}
 });
 
 var remaining;
 app.get('/update', enCoded, function(req,res) {
 
 	sess = req.session;
-
-	var sql_string = "SELECT queue_remaining, queue_serving FROM queue_lines WHERE date = CURDATE();";
-		con.query(sql_string , function(err, rows, fields)
-		{
-			if (err) {
-				console.log('Error!');
-			} else {
-				if(rows.length > 0) {
-					remaining = 101 - rows[0].queue_remaining;
-					data = {
-						available: remaining,
-						serving:rows[0].queue_serving
-					}
-					res.send(data);
-
+	if (sess.id_no) {
+		var sql_string = "SELECT queue_remaining, `"+sess.designation+".queue_serving` FROM queue_lines WHERE date = CURDATE();";
+			con.query(sql_string , function(err, rows, fields)
+			{
+				if (err) {
+					console.log('Error! '+ sql_string);
 				} else {
-					data = {
-						available:'Please Generate QR Code first',
-						serving:0
+					if(rows.length > 0) {
+						remaining = 101 - rows[0].queue_remaining;
+						data = {
+							available: remaining,
+							serving:rows[0][sess.designation+".queue_serving"]
+						}
+						res.send(data);
+					} else {
+						data = {
+							available:'Please Generate QR Code first',
+							serving:0
+						}
+						res.send(data)
 					}
-					res.send(data)
 				}
-			}
-		});
-	
+			});
+	} else {
+		res.redirect('/');
+	}
 	
 });
 
@@ -273,30 +303,35 @@ app.post('/start', enCoded, function(req,res) {
 
 	sess = req.session;
 	var serving = req.body.serving;
-		
-	if (serving < remaining - 1) {
-		serving++;
-		var sql_string = "UPDATE queue_lines SET queue_serving = '"+ serving +"' WHERE date = CURDATE();";
-			con.query(sql_string , function(err, rows, fields)
-			{
-				if (err) {
-					console.log('Error!');
-				} else { 
 
-					data = {
-						available: remaining,
-						serving: serving
+	console.log('start!');
+	if (sess.id_no) {	
+		if (serving < remaining - 1) {
+			serving++;
+			var sql_string = "UPDATE queue_lines SET `"+sess.designation+".queue_serving` = '"+ serving +"' WHERE date = CURDATE();";
+				con.query(sql_string , function(err, rows, fields)
+				{
+					if (err) {
+						console.log(sql_string);
+
+						console.log('Error!');
+					} else { 
+						data = {
+							available: remaining,
+							serving: serving
+						}
+						res.send(data)
+						console.log(serving);
 					}
-					res.send(data)
-					console.log(serving);
-				}
-			});
-	} else {
-		data = {
-			msg : 'Next queue number is not taken yet.'
+				});
+		} else {
+			data = {
+				msg : 'Next queue number is not taken yet.'
+			}
 		}
+	} else {
+		res.redirect('/');
 	}
-	
 	
 });
 app.listen(3000);
