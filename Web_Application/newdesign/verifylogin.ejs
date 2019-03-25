@@ -8,6 +8,7 @@
 	<head>
 		<title>Q-STI</title>
 		<meta charset="utf-8" />
+		<link rel="shortcut icon" href="images/sti.png">
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
 		<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
@@ -25,6 +26,7 @@
 						<div class="fields">
 								<label for="Id">Verification code</label>
 								<input type="text" name="Id" id="Id" />
+								<input type="hidden" id="confirm" value="0"/>
 						</div>
 						<ul class="actions" style="margin-top: 15px">
 							<li><input type="submit" value="Verify" class="primary" id="login" /></li>
@@ -40,7 +42,7 @@
 
 				<!-- Footer -->
 					<footer id="footer">
-						<p class="copyright">&copy; Untitled. Design: <a href="https://html5up.net">STI STUDENTS</a>.</p>
+						<p class="copyright">&copy; Untitled. Design: <span>STI STUDENTS</span>.</p>
 					</footer>
 
 			</div>
@@ -59,28 +61,41 @@
 	
 	<script type="text/javascript">
 				$(document).ready(function() {
-
+				window.addEventListener( "pageshow", function ( event ) {
+				  var historyTraversal = event.persisted || 
+										 ( typeof window.performance != "undefined" && 
+											  window.performance.navigation.type === 2 );
+				  if ( historyTraversal ) {
+					// Handle page restore.
+					window.location.reload();
+				  }
+				});
 					var allow = false;
-
+					
 					$('#login').click(function(e){
 						if(allow == false) {
 							e.preventDefault();			
 							var formData = {
 								Id : $('#Id').val(),
-								validator : allow
+								validator : allow,
+								confirm: $('#confirm').val()
 							};
 							if ($('#Id').val() == '') {
 								swal ( "Oops" ,  "Please enter verification code!" ,  "warning" )
 							} else {						
 								$.ajax({
 									type: 'post',
-									url: 'http://localhost:3000/login/',
+									//url: 'http://localhost:8080/login',
+									url: 'https://peaceful-atoll-33285.herokuapp.com/login',
 									dataType: 'json',
 									data: formData
 								})
 								.done(function(data) {
 									if (data.allow == false) {
 										swal ( "Oops" ,  data.msg ,  "warning" )
+										var counter = parseInt($("#confirm").val());
+										counter++;
+										$("#confirm").val(counter);
 									} else {
 										allow = data.allow;
 										$('#login').click();

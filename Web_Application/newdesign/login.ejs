@@ -7,6 +7,7 @@
 <html>
 	<head>
 		<title>Q-STI</title>
+		<link rel="shortcut icon" href="images/sti.png">
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
@@ -25,8 +26,6 @@
 						<div class="fields" style="margin-top:15px">
 								<label for="studentID">Student Number</label>
 								<input type="text" name="studentID" id="studentID" onkeypress="return isNumber(event)" /> <br/>
-								<% var msg = msg %>
-								<p style="color:red; text-align: left;margin: 16px 5px;" ><%= msg %></p>
 						</div>
 							<input type="submit" id="login" value="Login" class="primary" style="margin-top:15px"/> <br/>
 						</ul>
@@ -53,7 +52,7 @@
 
 				<!-- Footer -->
 					<footer id="footer">
-						<p class="copyright">&copy; Untitled. Design: <a href="https://html5up.net">STI STUDENTS</a>.</p>
+						<p class="copyright">&copy; Untitled. Design: <span>STI STUDENTS</span>.</p>
 					</footer>
 
 			</div>
@@ -82,10 +81,21 @@
 	
 	 <script type="text/javascript">
 		$(document).ready(function() {
+			window.addEventListener( "pageshow", function ( event ) {
+			  var historyTraversal = event.persisted || 
+									 ( typeof window.performance != "undefined" && 
+										  window.performance.navigation.type === 2 );
+			  if ( historyTraversal ) {
+				// Handle page restore.
+				window.location.reload();
+			  }
+			});
 			var allow = false;
 
 			$('#login').click(function(e){
+				console.log('Function entered');
 				if(allow == false) {
+					console.log('LOG 5');	
 					e.preventDefault();			
 					var formData = {
 						studentID : $('#studentID').val(),
@@ -93,24 +103,28 @@
 					};
 					if ($('#studentID').val() == '') {
 						swal ( "Oops" ,  "Please enter your Student ID number!" ,  "warning" )
+						console.log('Error 4');	
 					} else {						
 						$.ajax({
 							type: 'post',
-							url: 'http://localhost:3000/send/',
+							url: 'https://peaceful-atoll-33285.herokuapp.com/send',
+							//url: 'http://localhost:8080/send',
 							dataType: 'json',
 							data: formData
 						})
 						.done(function(data) {
 							if (data.allow == false) {
 								swal ( "Oops" ,  data.msg ,  "warning" )
+								console.log('Error 2');	
 							} else {
 								allow = data.allow;
+								console.log('Error 3');	
 								$('#login').click();
 							}
 						})
-						.fail(function(jqXHR, textStatus, err) {
+						.fail(function(jqXHR, textStatus, err) {							
 							swal ( "Oops" ,  "Error" ,  "error" )
-							console.log('Error');
+							console.log('Error 1');
 						});
 					}
 				}

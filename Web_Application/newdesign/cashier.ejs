@@ -8,6 +8,7 @@
 	<head>
 		<title>Q-STI</title>
 		<meta charset="utf-8" />
+		<link rel="shortcut icon" href="images/sti.png">
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
 		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
@@ -25,6 +26,8 @@
 						</div>
 						<div class="content">
 							<div class="inner">
+								<input type="hidden" style="visible: false;" id="confirmm" value="0"/>
+								<input type="hidden" style="visible: false;" id="confirm" value="0"/>
 								<h2 id="textid"> </h2>
 								<h2>Your queue number: </h2>
 								<h1 style="color:yellow;" id="own">  </h1>
@@ -79,7 +82,7 @@
 
 				<!-- Footer -->
 					<footer id="footer">
-						<p class="copyright">&copy; Untitled. Design: <a href="https://html5up.net">STI STUDENTS</a>.</p>
+						<p class="copyright">&copy; Untitled. Design: <span>STI STUDENTS</span>.</p>
 					</footer>
 
 			</div>
@@ -107,30 +110,40 @@
 			var randomnumber = Math.floor(Math.random() * 100);
 			var btn = "<%= rel %>";
 			var socket = io();
-			var s = "";
-			var c = "";
-								  
+			var s;
+			var c;
+					
 			if(btn == "cashier") {
 				socket.on('connect', function() {
 				});
 					socket.on('currentc', function({ row, current, queue }) {
 					document.getElementById("own").innerHTML = queue;
 					document.getElementById("current").innerHTML = current;
-					s += queue;
-					c += current;
+					s = queue;
+					c = current;
 					var temp = s - 5;
 					var tmp = s - 2;
 											
 					if (s > 5){
-						if(c == temp){
+						if(c == temp){							
 							socket.on('text', function(text) {
-								socket.emit('text', text);
-							});
+								var x=document.getElementById("confirm").value;
+								var counter = parseInt(x);
+								if(counter == 0){
+									counter++;
+									document.getElementById("confirm").value = counter;
+								}
+							});															
 						}
-						if(c == tmp) {
-							socket.on('text', function(text) {
-								socket.emit('text', text);
-							});
+						if(c == tmp){							
+							socket.on('text1', function(text1) {
+								var x=document.getElementById("confirmm").value;
+								var counter = parseInt(x);
+								if(counters == 0){
+									counters++;
+									document.getElementById("confirmm").value = counters;
+								}
+							});															
 						}
 					}
 						
@@ -167,22 +180,31 @@
 				socket.on('currente', function({ row, current, queue }) {
 					document.getElementById("own").innerHTML = queue;
 					document.getElementById("current").innerHTML = current;
-					s += queue;
-					c += current;
-					
+					s = queue;
+					c = current;
 					var temp = s - 5;
 					var tmp = s - 2;
 											
 					if (s > 5){
-						if(c == temp){
+						if(c == temp){							
 							socket.on('text', function(text) {
-								socket.emit('text', text);
-							});
+								var x=document.getElementById("confirm").value;
+								var counter = parseInt(x);
+								if(counter == 0){
+									counter++;
+									document.getElementById("confirm").value = counter;
+								}
+							});															
 						}
-						if(c == tmp) {
-							socket.on('text', function(text) {
-								socket.emit('text', text);
-							});
+						if(c == tmp){							
+							socket.on('text1', function(text1) {
+								var x=document.getElementById("confirmm").value;
+								var counter = parseInt(x);
+								if(counters == 0){
+									counters++;
+									document.getElementById("confirmm").value = counters;
+								}
+							});															
 						}
 					}
 					
@@ -197,7 +219,7 @@
 					
 					if(c == temp){
 						$( document ).ready(function() {
-							swal ( "Be patient" ,  "You are 5 in a row!" ,  "success" )
+							swal ( "Be patient" ,  "You are 5th in a row!" ,  "success" )
 						});						
 					}
 					if(c == tmp) {
@@ -220,21 +242,31 @@
 				socket.on('currentp', function({ row, current, queue }) {
 					document.getElementById("own").innerHTML = queue;
 					document.getElementById("current").innerHTML = current;
-					s += queue;
-					c += current;
+					s = queue;
+					c = current;
 					var temp = s - 5;
 					var tmp = s - 2;
 											
 					if (s > 5){
-						if(c == temp){
+						if(c == temp){							
 							socket.on('text', function(text) {
-								socket.emit('text', text);
-							});
+								var x=document.getElementById("confirm").value;
+								var counter = parseInt(x);
+								if(counter == 0){
+									counter++;
+									document.getElementById("confirm").value = counter;
+								}
+							});															
 						}
-						if(c == tmp) {
-							socket.on('text', function(text) {
-								socket.emit('text', text);
-							});
+						if(c == tmp){							
+							socket.on('text1', function(text1) {
+								var x=document.getElementById("confirmm").value;
+								var counter = parseInt(x);
+								if(counters == 0){
+									counters++;
+									document.getElementById("confirmm").value = counters;
+								}
+							});															
 						}
 					}
 					
@@ -271,21 +303,31 @@
 				socket.on('currentr', function({ row, current, queue }) {
 					document.getElementById("own").innerHTML = queue;
 					document.getElementById("current").innerHTML = current;
-					s += queue;
-					c += current;
+					s = queue;
+					c = current;
 					var temp = s - 5;
 					var tmp = s - 2;
 											
 					if (s > 5){
-						if(c == temp){
+						if(c == temp){							
 							socket.on('text', function(text) {
-								socket.emit('text', text);
-							});
+								var x=document.getElementById("confirm").value;
+								var counter = parseInt(x);
+								if(counter == 0){
+									counter++;
+									document.getElementById("confirm").value = counter;
+								}
+							});															
 						}
-						if(c == tmp) {
-							socket.on('text', function(text) {
-								socket.emit('text', text);
-							});
+						if(c == tmp){							
+							socket.on('text1', function(text1) {
+								var x=document.getElementById("confirmm").value;
+								var counter = parseInt(x);
+								if(counters == 0){
+									counters++;
+									document.getElementById("confirmm").value = counters;
+								}
+							});															
 						}
 					}
 					

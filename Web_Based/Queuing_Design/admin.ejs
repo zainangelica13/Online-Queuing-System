@@ -1,0 +1,145 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Online Queuing System</title>
+		<link rel="shortcut icon" href="images/sti.png">
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="description" content="" />
+		<meta name="keywords" content="" />
+		<!--[if lte IE 8]><script src="js/html5shiv.js"></script><![endif]-->
+		<script src="js/jquery.min.js"></script>
+		<script src="js/skel.min.js"></script>
+		<script src="js/skel-layers.min.js"></script>
+		<script src="js/init.js"></script>
+		<script src="js/jquery-confirm.js"></script>
+
+		<noscript>
+			<link rel="stylesheet" href="css/skel.css" />
+			<link rel="stylesheet" href="css/style.css" />
+			<link rel="stylesheet" href="css/style-xlarge.css" />
+		</noscript>
+		<link rel="stylesheet" href="css/jquery-confirm.css" />
+
+		<style type="text/css">
+			.jc-bs3-container{
+				text-align: center;
+			}
+
+			.jc-bs3-row{
+				display: inline-block;
+				text-align: left;
+			}
+		</style>
+	</head>
+	<body id="top">
+
+		<!-- Header -->
+			<header id="header" class="skel-layers-fixed">
+				<a href="#" style="margin-left:18px;"><img src="sti.png" alt="STI College Icon" style="height:44px"></a> 
+				<h1 id="user_level" style="margin-left: 75px;color:#014e92;font-size: 25px;letter-spacing: 1px"></h1>
+				<script type="text/javascript">
+					$.ajax({
+						type: 'get',
+						url: 'https://radiant-springs-10753.herokuapp.com/user_level',
+						dataType: 'json'
+					})
+					.done(function(data) {
+						$("#user_level").html(data.user);
+					})
+					.fail(function(jqXHR, textStatus, err) {
+						console.log('AJAX error response:', err);
+					});
+				</script>
+				<br>
+				<nav id="nav">
+					<ul>
+						<li><a href="/logout" class="button special" id="logout">Log Out</a></li>
+					</ul>
+				</nav>
+			</header>
+
+		
+		<!-- One -->
+			<section id="one" class="wrapper style1">
+				<header class="major">
+					<h2>Online Queuing System</h2>
+					<p>Web Based System</p>
+				</header>
+				<div style="text-align: center;" class="container">
+					<div style="display: inline-block; width: 750px;" class="row">
+							<div class="6u">
+								<a href="/queue_line">
+								<section class="special box">
+									<i class="icon fa-suitcase major"></i>
+									<h3>Employees</h3>
+								</section>
+								</a>
+							</div>
+							<div class="6u">
+								<a href="queue_management">
+								<section class="special box">
+									<i class="icon fa-users major"></i>
+									<h3>Students</h3>
+								</section>
+								</a>
+							</div>
+
+					</div>
+				</div>
+			</section>
+			
+			<script type="text/javascript">
+				$(document).ready(function() {
+
+window.addEventListener( "pageshow", function ( event ) {
+  var historyTraversal = event.persisted || 
+                         ( typeof window.performance != "undefined" && 
+                              window.performance.navigation.type === 2 );
+  if ( historyTraversal ) {
+    // Handle page restore.
+    window.location.reload();
+  }
+});
+
+					var allow=false;
+
+					$('#logout').click(function(e) {
+
+						if (!allow) {
+							e.preventDefault();
+
+							$.confirm({
+							    title: 'Confirmation',
+							    content: 'Are you sure you want to log out?',
+							    icon: 'fa fa-warning',
+							    type: 'blue',
+							    buttons: {
+							        Yes: {
+							        	text:'Yes',
+							        	btnClass:'btn-blue',
+							        	keys:['space'],
+							        	action: function(){
+							        		allow=true;
+											console.log(allow);
+											$('#logout').click();
+							        	}
+							        },
+							        Cancel:{
+							        	text:'Cancel',
+							        	btnClass:'btn-dark',
+							        	keys:['esc'],
+							        	action: function(){
+							        		console.log('canceled')
+							        	}
+							        }
+							    }
+							});
+						} else {
+							window.location.href = '/logout';
+						}
+					});
+				});
+				
+			</script>
+	</body>
+</html>

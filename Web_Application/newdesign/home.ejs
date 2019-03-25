@@ -8,6 +8,7 @@
 	<head>
 		<title>Q-STI</title>
 		<meta charset="utf-8" />
+		<link rel="shortcut icon" href="images/sti.png">
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
 		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
@@ -65,6 +66,7 @@
 								<center class="actions">
 								<h2 class="major">SLOT</h2>
 								<form method="post" action="/slot">
+									<input type="hidden"  id="confirm" value="0"/>
 									<input type="text" id="datepicker" name="dte">
 									<select name="tab" id="coun" style="margin-top:10px" onchange="findSlot()">
 										<option value="" selected disabled>Select Counter</option>
@@ -92,19 +94,28 @@
 									function findSlot(){
 										var date = document.getElementById('datepicker').value;
 										var counters = document.getElementById('coun').value;
+										var x=document.getElementById("confirm").value;
+										var counter = parseInt(x);
 										var socket = io();
 										var dte = 0;
 										var avail = 20;
+										var done = "false";
 										socket.on('connect', function() {
 										});
 										socket.on('showrows', function(rows) {
-											var html='';
-											for(var i = 0; i < rows.length; i++){
-												if(rows[0].date == date && rows[0].counter == counters){
-													dte++;
-													avail--;
+											if(counter == 0){
+												for(var i = 0; i < rows.length; i++){
+													if(rows[0].date == date && rows[0].counter == counters){
+														dte++;
+														avail--;
+														done = "true";
+													}
 												}
-											} 
+												if(done == "true"){
+													counter++;
+												}
+											}
+											document.getElementById("confirm").value = counter;
 											document.getElementById("td1").innerHTML = dte;
 											document.getElementById("td2").innerHTML = avail;
 											socket.emit('rows', showrows);
@@ -118,7 +129,7 @@
 
 				<!-- Footer -->
 					<footer id="footer">
-						<p class="copyright">&copy; Untitled. Design: <a href="/about">STI STUDENTS</a>.</p>
+						<p class="copyright">&copy; Untitled. Design: <span>STI STUDENTS</span>.</p>
 					</footer>
 
 			</div>
@@ -152,45 +163,23 @@
 	</body>
 		 <script type="text/javascript">
 			$(document).ready(function() {
-			var allow = false;
-			
-			$("#nav-logout").click(function(e) {
-				  e.preventDefault()
-					swal({
-						title : "",
-						text : "Would you like to log out from the system?",
-						type : "warning",
-						showCancelButton: true,
-						confirmButtonText: "Yes",
-				   },
-					function(isConfirm){
-					  if (isConfirm) {
-						  $.ajax({
-							type: 'post',
-							url: 'http://localhost:3000/logout/',
-							dataType: 'json',
-							data: formData
-							})
-							.done(function(data) {
-									allow = data.allow;
-									$('#login').click();
-							})
-							.fail(function(jqXHR, textStatus, err) {
-								swal ( "Oops" ,  "Error" ,  "error" )
-								console.log('Error');
-							});
-					  } else {
-							alert("Cancelled");
-					  }
-						})
+			window.addEventListener( "pageshow", function ( event ) {
+			  var historyTraversal = event.persisted || 
+									 ( typeof window.performance != "undefined" && 
+										  window.performance.navigation.type === 2 );
+			  if ( historyTraversal ) {
+				// Handle page restore.
+				window.location.reload();
+			  }
 			});
+			var allow = false;
 
 			$('#reserve').click(function(e){
 				if(allow == false) {
 					e.preventDefault();			
 					var formData = {
 						dte : $('#datepicker').val(),
-						tab : $('#coun option:selected').val();,
+						tab : $('#coun option:selected').val(),
 						validator : allow
 					};
 					if ($('#datepicker').val() == '' || $('#coun').val() == '') {
@@ -198,7 +187,8 @@
 					} else {						
 						$.ajax({
 							type: 'post',
-							url: 'http://localhost:3000/slot/',
+							//url: 'http://localhost:8080/slot',
+							url: 'https://peaceful-atoll-33285.herokuapp.com/slot',
 							dataType: 'json',
 							data: formData
 						})
@@ -207,7 +197,9 @@
 								swal ( "Oops" ,  data.msg ,  "warning" )
 							} else {
 								allow = data.allow;
-								$('#login').click();
+								$('#reserve').click();
+								swal ( "Congrats" ,  "Slot reservation succeeded!" ,  "success" )
+								
 							}
 						})
 						.fail(function(jqXHR, textStatus, err) {
@@ -221,4 +213,5 @@
 		});
 
 			</script>
+			
 </html>

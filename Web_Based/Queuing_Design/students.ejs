@@ -1,0 +1,752 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>Online Queuing System</title>
+	<link rel="shortcut icon" href="images/sti.png">
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<meta name="description" content="" />
+	<meta name="keywords" content="" />
+	<!--[if lte IE 8]><script src="js/html5shiv.js"></script><![endif]-->
+	<script src="js/jquery.min.js"></script>
+	<script src="js/skel.min.js"></script>
+	<script src="js/skel-layers.min.js"></script>
+	<script src="js/init.js"></script>
+	<script src="js/jquery-confirm.js"></script>
+	<script type="text/javascript" src="js/bootstrap.js"></script>
+	<script type="text/javascript" src="js/jquery.dataTables.js"></script>
+	<script type="text/javascript" src="js/dataTables.bootstrap4.js"></script>
+
+	<noscript>
+		<link rel="stylesheet" href="css/skel.css" />
+		<link rel="stylesheet" href="css/style.css" />
+		<link rel="stylesheet" href="css/style-xlarge.css" />
+	</noscript>
+	<link rel="stylesheet" href="css/jquery-confirm.css" />
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+	<link rel="stylesheet" type="text/css" href="css/jquery.dataTables.css">
+	<link rel="stylesheet" type="text/css" href="css/dataTables.bootstrap4.css">
+	
+	
+
+	<style type="text/css">
+		.row+.row>* {
+			padding: 0px 15px;
+		}
+		.modal {
+			padding-top: 100px;
+		}
+		.modal-header{
+			background: #fff200;
+			border:none;
+		}
+		.modal-footer{
+			background: #fff200;
+			border:none;
+		}
+		.modal-footer{
+			border-bottom-left-radius:0.3rem;
+			border-bottom-right-radius:0.3rem;
+		}
+		.modal-title{
+			line-height: 24px;
+			color:black	;
+		}
+		input[type="text"]{
+			background: #fff;
+			color: #000;
+		}
+		.col-form-label{
+			padding: 0px 15px;
+			line-height: 45px;
+		}
+		th {
+			background: #013faa;
+		}
+		.wrapper {
+			padding: 3em 0 4em 0;
+		}
+		.jc-bs3-container{
+			text-align: center;
+		}
+		.jc-bs3-row{
+			text-align: left;
+		}
+		input{
+			margin-top: 5px;
+		}
+		::-webkit-input-placeholder {
+	        color: #6c757d !important;
+	    }
+		input[type="password"]{
+			background: #fff;
+			color: #000;
+		}
+		select{
+			-webkit-appearance: menulist;
+			background: #fff;
+			margin-top: 5px;
+			color: #6c757d;
+		}
+		option{
+			background: rgb(255, 255, 255);
+			color: #000;
+		}
+		option[value=""] {
+			display: none;
+		}
+		a {
+			margin-left:5px;
+		}
+		h1 {
+			font-weight: bold;
+		}
+		form {
+			margin:0px;
+		}
+		.required::after {
+			content: " *";
+			color:red;
+		}
+	</style>
+</head>
+<body id="top">
+
+		<!-- Header -->
+			<header id="header" class="skel-layers-fixed">
+				<a href="#" style="margin-left:18px;"><img src="sti.png" alt="STI College Icon" style="height:44px"></a> 
+				<h1 id="user_level" style="margin-left: 75px;color:#014e92;font-size: 25px;letter-spacing: 1px"></h1>
+				<script type="text/javascript">
+					$.ajax({
+						type: 'get',
+						url: 'https://radiant-springs-10753.herokuapp.com/user_level',
+						dataType: 'json'
+					})
+					.done(function(data) {
+						$("#user_level").html(data.user);
+					})
+					.fail(function(jqXHR, textStatus, err) {
+						console.log('AJAX error response:', err);
+					});
+				</script>
+				<br>
+				<nav id="nav">
+					<ul>
+						<li><a href="/">Home</a></li>
+						<li><a href="/logout" class="button special" id="logout">Log Out</a></li>
+					</ul>
+				</nav>
+			</header>
+
+
+		
+		<!-- One -->
+			<section id="one" class="wrapper style1">
+
+				<div style="margin:0px 50px;">
+				<h2 style="margin-bottom:10px;font-weight: bold;">Student List
+					<div class="float-right" id="top-buttons">
+						<button class="btn btn-sm btn-primary insert" data-toggle="modal" data-target="#Modal_Add">Add New Student</button>
+					</div>
+				</h2>
+				<table class="table table-striped dataTable no-footer" id="mydata">
+					<thead>
+						<tr class="role">
+							<th width="20%">ID Number</th>
+							<th width="20%">Name</th>
+							<th width="20%">Course</th>
+							<th width="20%">Phone Number</th>
+							<th style="text-align:right;width:20%;">Actions</th>
+						</tr>
+					</thead>
+
+					<tbody id="result"></tbody>
+				</table>
+				</div>
+
+<!-- MODAL ADD -->
+<div class="modal fade" id="Modal_Add" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sml" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title" id="exampleModalLabel">Register New Students</h1>
+        <button type="button" class="close btn_cancel" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form id="insert_form">
+      <div class="modal-body">
+      		<p>All fields with * are required fields</p>
+            <div class="form-group row">
+                <label class="col-md-4 col-form-label required">ID Number</label>
+                <div class="col-md-8">
+                  <input type="text" name="id_no" id="id_no" class="form-control numbers-only" placeholder="ID Number" maxlength="11">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-md-4 col-form-label required">Name</label>
+                <div class="col-md-8">
+                  <input type="text" name="name" id="name" class="form-control" placeholder="Name">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-md-4 col-form-label required">Course</label>
+                <div class="col-md-8">
+                  <select name="course" id="course">
+						<option value="" selected disabled>Course</option>
+						<option value="BSTM">BSTM</option>
+						<option value="BSBA">BSBA</option>
+						<option value="BSCM">BSCM</option>
+						<option value="BSAIS">BSAIS</option>
+						<option value="BACOMM">BACOMM</option>
+						<option value="BSA">BSA</option>
+						<option value="BMMA">BMMA</option>
+						<option value="BSIS">BSIS</option>
+						<option value="BSCS">BSCS</option>
+						<option value="BSIT">BSIT</option>
+						<option value="BSCpE">BSCpE</option>
+						<option value="ACT">ACT</option>
+					</select>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-md-4 col-form-label required">Phone Number</label>
+                <div class="col-md-8">
+                  <input type="text" name="phone_number" id="phone_number" class="form-control numbers-only" placeholder="Phone Number" maxlength="12">
+                </div>
+            </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" id="btn_save" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+    </div>
+  </div>
+</div>
+<!--END MODAL ADD-->
+
+<!-- MODAL EDIT -->
+<div class="modal fade" id="Modal_Edit" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sml" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title" id="exampleModalLabel">Student Data</h1>
+        <button type="button" class="close btn_cancel" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form id="update_form">
+     <div class="modal-body">
+            <div class="form-group row">
+                <label class="col-md-4 col-form-label">ID Number</label>
+                <div class="col-md-8">
+                  <input type="text" name="id_no_edit" id="id_no_edit" class="form-control" readonly>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-md-4 col-form-label">Contact Number</label>
+                <div class="col-md-8">
+                  <input type="text" name="name_edit" id="name_edit" class="form-control">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-md-4 col-form-label">Course</label>
+                <div class="col-md-8">
+                  <select name="course_edit" id="course_edit">
+						<option value="" selected disabled>Course</option>
+						<option value="BSTM">BSTM</option>
+						<option value="BSBA">BSBA</option>
+						<option value="BSCM">BSCM</option>
+						<option value="BSAIS">BSAIS</option>
+						<option value="BACOMM">BACOMM</option>
+						<option value="BSA">BSA</option>
+						<option value="BMMA">BMMA</option>
+						<option value="BSIS">BSIS</option>
+						<option value="BSCS">BSCS</option>
+						<option value="BSIT">BSIT</option>
+						<option value="BSCpE">BSCpE</option>
+						<option value="ACT">ACT</option>
+					</select>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-md-4 col-form-label">Phone Number</label>
+                <div class="col-md-8">
+                  <input type="text" name="phone_number_edit" id="phone_number_edit" class="form-control numbers-only " placeholder="Phone Number" maxlength="12">
+                </div>
+            </div>
+        </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" id="btn_update" class="btn btn-primary">Update</button>
+      </div>
+  	 </form>
+    </div>
+  </div>
+</div>
+<!--END MODAL EDIT-->
+				
+<!--MODAL DELETE-->
+<div class="modal fade" id="Modal_Delete" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title" id="exampleModalLabel">Delete Student</h1>
+        <button type="button" class="close btn_cancel" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+           <strong style="color:#fff;">Are you sure to delete this user?</strong>
+      </div>
+      <div class="modal-footer">
+        <input type="hidden" name="id_no_delete" id="id_no_delete" class="form-control">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+        <button type="button" type="submit" id="btn_delete" class="btn btn-primary">Yes</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!--END MODAL DELETE-->
+
+					</section>
+			
+<script type="text/javascript">
+	$(document).ready(function() {
+
+window.addEventListener( "pageshow", function ( event ) {
+var historyTraversal = event.persisted || 
+            ( typeof window.performance != "undefined" && 
+                window.performance.navigation.type === 2 );
+if ( historyTraversal ) {
+// Handle page restore.
+window.location.reload();
+}
+});
+		$('.numbers-only').keypress(function(e){
+			var regex = new RegExp("^[0-9 ]+$");
+		    var key = String.fromCharCode(!e.charCode ? e.which : e.charCode);
+		    if (regex.test(key)) {
+		        return true;
+	    	}
+
+	    	e.preventDefault();
+		    return false;
+	    });
+	    $('#course').change(function(){
+			if ($('#course').val() != null) {
+				$('#course').css('color','black');
+			} 
+		});
+		$('#course_edit').change(function(){
+			if ($('#course_edit').val() != null) {
+				$('#course_edit').css('color','black');
+			} 
+		});
+
+		var allow=false;
+
+		$('#logout').click(function(e) {
+
+			if (!allow) {
+				e.preventDefault();
+
+				$.confirm({
+				    title: 'Confirmation',
+				    content: 'Are you sure you want to log out?',
+				    icon: 'fa fa-warning',
+				    type: 'blue',
+				    buttons: {
+				        Yes: {
+				        	text:'Yes',
+				        	btnClass:'btn-blue',
+				        	keys:['space'],
+				        	action: function(){
+				        		allow=true;
+								console.log(allow);
+								$('#logout').click();
+				        	}
+				        },
+				        Cancel:{
+				        	text:'Cancel',
+				        	btnClass:'btn-dark',
+				        	keys:['esc'],
+				        	action: function(){
+				        		console.log('canceled')
+				        	}
+				        }
+				    }
+				});
+			} else {
+				window.location.href = '/logout';
+			}
+		});
+		
+		$.ajax({
+			type: 'get',
+			url: 'https://radiant-springs-10753.herokuapp.com/students',
+			dataType: 'json'
+		})
+		.done(function(data) {
+			var values="";
+			for (var i=0; i<data.table; i++) {
+			values += '<tr><td>'+data.id_col.id_val[i]+'</td><td>'+data.name_col.name_val[i]+'</td><td>'+data.course_col.course_val[i]+'</td><td>'+data.phone_number_col.phone_number_val[i]+'</td><td align="right"><a href="javascript:void(0);" class="btn btn-info btn-sm student_edit" data-id_no="'+data.id_col.id_val[i]+'" >Update</a><a href="javascript:void(0);" class="btn btn-danger btn-sm item_delete" data-id_no="'+data.id_col.id_val[i]+'">Delete</a></td></tr>';
+			}
+			$('#mydata tbody').html(values);
+		})
+		.fail(function(jqXHR, textStatus, err) {
+			$.alert({
+			    title: 'Error',
+			    content: 'Error',
+			    icon: 'fa fa-warning',
+				type: 'blue',
+			    buttons: {
+			    	Okay:{
+				    	text: 'Okay',
+				    	btnClass:'btn-blue',
+				    	keys:['esc','space']
+				    }	
+			    }
+			});
+		});
+	
+		$('#result').on('click','.student_edit',function(){
+			var id_no= $(this).data('id_no');
+			$('#Modal_Edit').modal('show');
+			var formData = {
+				id_no:id_no
+			};
+
+			$.ajax({
+				type: 'post',
+				url: 'https://radiant-springs-10753.herokuapp.com/student_edit',
+				dataType: 'json',
+				data: formData
+			})
+			.done(function(data) {
+				$('[name="id_no_edit"]').val(data.id_col);
+				$('[name="name_edit"]').val(data.name_col);
+				$('[name="course_edit"]').val(data.course_col);
+				$('[name="phone_number_edit"]').val(data.phone_number_col);
+			})
+			.fail(function(jqXHR, textStatus, err) {
+				$.alert({
+				    title: 'Error',
+				    content: 'Error',
+				    icon: 'fa fa-warning',
+					type: 'blue',
+				    buttons: {
+				    	Okay:{
+					    	text: 'Okay',
+					    	btnClass:'btn-blue',
+					    	keys:['esc','space']
+					    }	
+				    }
+				});
+			});
+		});
+
+		$('#update_form').submit(function(e){
+			e.preventDefault();
+
+			var id_no  = $('#id_no_edit').val();
+			var name  = $('#name_edit').val();
+			var course  = $('#course_edit').val();
+			var phone_number  = $('#phone_number_edit').val();
+			var test = phone_number.charAt(0);
+
+			if (id_no == '' || name == '' || course == null || phone_number == '') {
+				$.alert({
+				    title: 'Insert error!',
+				    content: 'Please don\'t leave a textbox empty!',
+				    icon: 'fa fa-warning',
+				    type: 'blue',
+				    buttons: {
+				    	Okay:{
+					    	text: 'Okay',
+					    	btnClass:'btn-blue',
+					    	keys:['esc','space']
+					    }	
+				    }
+				});
+			} else {
+				if ((phone_number.charAt(0) !=6 || phone_number.charAt(1) !=3 || phone_number.charAt(2) !=9)) {
+					$.alert({
+					    title: 'Insert error!',
+					    content: 'Phone Number must start with 639.',
+					    icon: 'fa fa-warning',
+					    type: 'blue',
+					    buttons: {
+					    	Okay:{
+						    	text: 'Okay',
+						    	btnClass:'btn-blue',
+						    	keys:['esc','space']
+						    }	
+					    }
+					});
+				} else {
+					$.ajax({
+						type: 'post',
+							url: 'https://radiant-springs-10753.herokuapp.com/student_update',
+							dataType: 'json',
+							data: {id_no:id_no,	name:name, course:course, phone_number:phone_number}
+					})
+					.done(function(data) {
+						$.alert({
+						    title: 'Success',
+						    content: data.msg,
+						    icon: 'fa fa-check',
+							type: 'green',
+						    buttons: {
+						    	Okay:{
+							    	text: 'Okay',
+							    	btnClass:'btn-blue',
+							    	keys:['esc','space']
+							    }	
+						    }
+						});
+						$('#Modal_Edit').modal('hide');
+										$.ajax({
+							type: 'get',
+							url: 'https://radiant-springs-10753.herokuapp.com/students',
+							dataType: 'json'
+						})
+						.done(function(data) {
+							var values="";
+							for (var i=0; i<data.table; i++) {
+							values += '<tr><td>'+data.id_col.id_val[i]+'</td><td>'+data.name_col.name_val[i]+'</td><td>'+data.course_col.course_val[i]+'</td><td>'+data.phone_number_col.phone_number_val[i]+'</td><td align="right"><a href="javascript:void(0);" class="btn btn-info btn-sm student_edit" data-id_no="'+data.id_col.id_val[i]+'" >Update</a><a href="javascript:void(0);" class="btn btn-danger btn-sm item_delete" data-id_no="'+data.id_col.id_val[i]+'">Delete</a></td></tr>';
+							}
+							$('#mydata tbody').html(values);
+						})
+						.fail(function(jqXHR, textStatus, err) {
+							$.alert({
+							    title: 'Error',
+							    content: 'Error',
+							    icon: 'fa fa-warning',
+								type: 'blue',
+							    buttons: {
+							    	Okay:{
+								    	text: 'Okay',
+								    	btnClass:'btn-blue',
+								    	keys:['esc','space']
+								    }	
+							    }
+							});
+						});
+						
+					})
+					.fail(function(jqXHR, textStatus, err) {
+						$.alert({
+						    title: 'Error',
+						    content: 'Error',
+						    icon: 'fa fa-warning',
+							type: 'blue',
+						    buttons: {
+						    	Okay:{
+							    	text: 'Okay',
+							    	btnClass:'btn-blue',
+							    	keys:['esc','space']
+							    }	
+						    }
+						});
+					});
+				}
+			}
+		});
+
+		$('#insert_form').submit(function(e){
+			e.preventDefault();
+			var formData = {
+				id_no:$('#id_no').val(),
+				name:$('#name').val(),
+				course:$('#course').val(),
+				phone_number:$('#phone_number').val()
+			};
+
+			if ($('#id_no').val() == '' || $('#name').val() == '' || $('#course').val() == null || $('#phone_number').val() == '') {
+				$.alert({
+				    title: 'Insert error!',
+				    content: 'Please fill all textboxes!',
+				    icon: 'fa fa-warning',
+				    type: 'blue',
+				    buttons: {
+				    	Okay:{
+					    	text: 'Okay',
+					    	btnClass:'btn-blue',
+					    	keys:['esc','space']
+					    }	
+				    }
+				});
+			} else {
+				if ((formData.phone_number.charAt(0) !=6 || formData.phone_number.charAt(1) !=3 || formData.phone_number.charAt(2) !=9)) {
+					$.alert({
+					    title: 'Insert error!',
+					    content: 'Phone Number must start with 639.',
+					    icon: 'fa fa-warning',
+					    type: 'blue',
+					    buttons: {
+					    	Okay:{
+						    	text: 'Okay',
+						    	btnClass:'btn-blue',
+						    	keys:['esc','space']
+						    }	
+					    }
+					});
+				} else {
+					$.ajax({
+						type: 'post',
+						url: 'https://radiant-springs-10753.herokuapp.com/student_insert',
+						dataType: 'json',
+						data: formData
+					})
+					.done(function(data) {
+						if (data.allow == false) {;
+							$.alert({
+							    title: 'Insert Error!',
+							    content: data.msg,
+							    icon: 'fa fa-warning',
+							    type: 'yellow',
+							    buttons: {
+							    	Okay:{
+								    	text: 'Okay',
+								    	btnClass:'btn-blue',
+								    	keys:['esc','space']
+								    }	
+							    }
+							});
+						} else {
+							allow = data.allow;
+							$('[name="id_no"]').val("");
+			                $('[name="name"]').val("");
+			                $('[name="course"]').val("");
+			                $('[name="phone_number"]').val("");
+			                $('#Modal_Add').modal('hide');
+			                $.ajax({
+								type: 'get',
+								url: 'https://radiant-springs-10753.herokuapp.com/students',
+								dataType: 'json'
+							})
+							.done(function(data) {
+								var values="";
+								for (var i=0; i<data.table; i++) {
+								values += '<tr><td>'+data.id_col.id_val[i]+'</td><td>'+data.name_col.name_val[i]+'</td><td>'+data.course_col.course_val[i]+'</td><td>'+data.phone_number_col.phone_number_val[i]+'</td><td align="right"><a href="javascript:void(0);" class="btn btn-info btn-sm student_edit" data-id_no="'+data.id_col.id_val[i]+'" >Update</a><a href="javascript:void(0);" class="btn btn-danger btn-sm item_delete" data-id_no="'+data.id_col.id_val[i]+'">Delete</a></td></tr>';
+								}
+								$('#mydata tbody').html(values);
+							})
+							.fail(function(jqXHR, textStatus, err) {
+								$.alert({
+								    title: 'Error',
+								    content: 'Error',
+								    icon: 'fa fa-warning',
+									type: 'blue',
+								    buttons: {
+								    	Okay:{
+									    	text: 'Okay',
+									    	btnClass:'btn-blue',
+									    	keys:['esc','space']
+									    }	
+								    }
+								});
+							});
+			            }
+					})
+					.fail(function(jqXHR, textStatus, err) {
+						$.alert({
+						    title: 'Error',
+						    content: 'Error',
+						    icon: 'fa fa-warning',
+							type: 'blue',
+						    buttons: {
+						    	Okay:{
+							    	text: 'Okay',
+							    	btnClass:'btn-blue',
+							    	keys:['esc','space']
+							    }	
+						    }
+						});
+					});
+				}
+			}
+		});
+
+		$('#result').on('click','.item_delete',function(){
+	        var id_no  = $(this).data('id_no');
+	        
+	        $('#Modal_Delete').modal('show');
+	        $('[name="id_no_delete"]').val(id_no);
+	    });
+
+	    $('#btn_delete').click(function(){
+
+			var id_no = $('#id_no_delete').val();
+			$.ajax({
+				type: 'post',
+				url: 'https://radiant-springs-10753.herokuapp.com/student_delete',
+				dataType: 'json',
+				data: {id_no:id_no}
+			})
+			.done(function(data) {
+				$.alert({
+				    title: 'Success',
+				    content: data.msg,
+				    icon: 'fa fa-check',
+					type: 'green',
+				    buttons: {
+				    	Okay:{
+					    	text: 'Okay',
+					    	btnClass:'btn-blue',
+					    	keys:['esc','space']
+					    }	
+				    }
+				});
+				$('#Modal_Delete').modal('hide');
+
+				$.ajax({
+					type: 'get',
+					url: 'https://radiant-springs-10753.herokuapp.com/students',
+					dataType: 'json'
+				})
+				.done(function(data) {
+					var values="";
+					for (var i=0; i<data.table; i++) {
+					values += '<tr><td>'+data.id_col.id_val[i]+'</td><td>'+data.name_col.name_val[i]+'</td><td>'+data.course_col.course_val[i]+'</td><td>'+data.phone_number_col.phone_number_val[i]+'</td><td align="right"><a href="javascript:void(0);" class="btn btn-info btn-sm student_edit" data-id_no="'+data.id_col.id_val[i]+'" >Update</a><a href="javascript:void(0);" class="btn btn-danger btn-sm item_delete" data-id_no="'+data.id_col.id_val[i]+'">Delete</a></td></tr>';
+					}
+					$('#mydata tbody').html(values);
+				})
+				.fail(function(jqXHR, textStatus, err) {
+					$.alert({
+					    title: 'Error',
+					    content: 'Error',
+					    icon: 'fa fa-warning',
+						type: 'blue',
+					    buttons: {
+					    	Okay:{
+						    	text: 'Okay',
+						    	btnClass:'btn-blue',
+						    	keys:['esc','space']
+						    }	
+					    }
+					});
+				});
+			})
+			.fail(function(jqXHR, textStatus, err) {
+				$.alert({
+				    title: 'Error',
+				    content: 'Error',
+				    icon: 'fa fa-warning',
+					type: 'blue',
+				    buttons: {
+				    	Okay:{
+					    	text: 'Okay',
+					    	btnClass:'btn-blue',
+					    	keys:['esc','space']
+					    }	
+				    }
+				});
+			});
+		});
+
+	});
+</script>
+	</body>
+</html>

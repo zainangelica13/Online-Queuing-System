@@ -7,6 +7,7 @@
 <html>
 	<head>
 		<title>Online Queuing System</title>
+		<link rel="shortcut icon" href="images/sti.png">
 		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 		<meta name="description" content="" />
 		<meta name="keywords" content="" />
@@ -53,7 +54,22 @@
 	<body id="top">
 		<!-- Header -->
 			<header id="header" class="skel-layers-fixed">
-				<h1><a href="#"> <img src="sti.png" alt="STI College Icon" style="height:44px"> </a></h1> <br>
+				<a href="#" style="margin-left:18px;"><img src="sti.png" alt="STI College Icon" style="height:44px"></a> 
+				<h1 id="user_level" style="margin-left: 75px;color:#014e92;font-size: 25px;letter-spacing: 1px"></h1>
+				<script type="text/javascript">
+					$.ajax({
+						type: 'get',
+						url: 'https://radiant-springs-10753.herokuapp.com/user_level',
+						dataType: 'json'
+					})
+					.done(function(data) {
+						$("#user_level").html(data.user);
+					})
+					.fail(function(jqXHR, textStatus, err) {
+						console.log('AJAX error response:', err);
+					});
+				</script>
+				<br>
 				<nav id="nav">
 					<ul>
 						<li><a href="/">Home</a></li>
@@ -67,7 +83,7 @@
 			<section id="one" class="wrapper style1" style="padding-bottom:0px;">
 				<header class="major">
 					<h2>QUEUE LINE</h2>
-					<h1>Queue number Available </h1>
+					<h1>Next Queue number Available </h1>
 					<h2 style="color: orange;" id="available">0</h2>
 				</header>
 				<div style="text-align: center;" class="container" >
@@ -115,7 +131,7 @@ window.addEventListener( "pageshow", function ( event ) {
 
 				$.ajax({
 					type: 'get',
-					url: 'http://localhost:3000/update',
+					url: 'https://radiant-springs-10753.herokuapp.com/update',
 					dataType: 'json'
 				})
 				.done(function(data) {
@@ -129,6 +145,11 @@ window.addEventListener( "pageshow", function ( event ) {
 					} else {
 						$('#start_btn').attr('value', 'Resume');
 					}
+
+					if(avail == 101 && serving == 100){
+						$('#serving').html('Closed');
+						$('#start_btn').attr('disabled', true);
+					}
 				})
 				.fail(function(jqXHR, textStatus, err) {
 					console.log('AJAX error response:', err);
@@ -137,14 +158,14 @@ window.addEventListener( "pageshow", function ( event ) {
 				setInterval(function() {
 					$.ajax({
 						type: 'get',
-						url: 'http://localhost:3000/update',
+						url: 'https://radiant-springs-10753.herokuapp.com/update',
 						dataType: 'json'
 					})
 					.done(function(data) {
 						avail = parseInt(data.available);
 						if (data.available < 101) {
 							$('#available').html(data.available);
-						} else if (data.available == 101){
+						} else if (data.available >= 101){
 							$('#available').html('Queue Line Closed');
 						} else {
 							$('#available').html(data.available);
@@ -160,7 +181,6 @@ window.addEventListener( "pageshow", function ( event ) {
 
 				$('#start_btn').click(function(e) {
 					e.preventDefault();
-
 					if ($('#available').html() == 'Please Generate QR Code first'){
 						$.alert({
 						    title: 'Queue Line Alert',
@@ -176,12 +196,6 @@ window.addEventListener( "pageshow", function ( event ) {
 						    }
 						});
 					} else {
-						if (serving==0) { 
-							$('#start_btn').attr('value', 'Start');
-						} else {
-							$('#start_btn').attr('value', 'Resume');
-						}
-
 						if (avail <=1 ) { 
 							$.alert({
 							    title: 'Queue Line Alert',
@@ -201,7 +215,7 @@ window.addEventListener( "pageshow", function ( event ) {
 								if (avail ==  serving + 1 ) {
 									$.alert({
 									    title: 'Queue Line Alert',
-									    content: 'Next queue number has been taken yet.',
+									    content: 'Next queue number is not taken yet.',
 									    icon: 'fa fa-warning',
 										type: 'blue',
 									    buttons: {
@@ -220,7 +234,7 @@ window.addEventListener( "pageshow", function ( event ) {
 									swtch = true;
 									$('#nxt_btn').click();
 								}
-							} else {									
+							} else {								
 								$('#start_btn').attr('value', 'Resume');
 								$('#nxt_btn').attr('disabled', true);
 								$('#res_btn').attr('disabled', true)
@@ -233,10 +247,11 @@ window.addEventListener( "pageshow", function ( event ) {
 				});
 
 				$('#nxt_btn').click(function() {
+					
 					if (serving < avail - 1) {
 						$.ajax({
 							type: 'post',
-							url: 'http://localhost:3000/start',
+							url: 'https://radiant-springs-10753.herokuapp.com/start',
 							dataType: 'json',
 							data: {serving : serving}
 						})
@@ -254,10 +269,15 @@ window.addEventListener( "pageshow", function ( event ) {
 							clearInterval(timer);
 							$('#nxt_btn').click();
 						}, 300000);
+						if (serving > 95) {
+							$('#start_btn').attr('disabled', true);
+						}
 
-					} else if (avail == 101 ) {
+					} else if (avail == 101 && serving == 100) {
 						$('#serving').html('Closed');
-					} else{
+						$('#nxt_btn').attr('disabled', true);
+						$('#res_btn').attr('disabled', true);
+					} else {
 						$.alert({
 						    title: 'Queue Line Alert',
 						    content: 'Next queue number is not taken yet.',

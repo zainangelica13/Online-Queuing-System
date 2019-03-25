@@ -8,6 +8,7 @@
 	<head>
 		<title>Q-STI</title>
 		<meta charset="utf-8" />
+		<link rel="shortcut icon" href="images/sti.png">
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/webrtc-adapter/3.3.3/adapter.min.js"></script>
@@ -93,7 +94,7 @@
 						</div>
 						<nav>
 							<ul>
-								<li><a href="/back">Cancel</a></li>
+								<li><a href="/back" target="_parent">Cancel</a></li>
 							</ul>
 						</nav>
 					</header>
@@ -106,7 +107,7 @@
 
 				<!-- Footer -->
 					<footer id="footer">
-						<p class="copyright">&copy; Untitled. Design: <a href="https://html5up.net">STI STUDENTS</a>.</p>
+						<p class="copyright">&copy; Untitled. Design: <span>STI STUDENTS</span>.</p>
 					</footer>
 
 			</div>
@@ -123,17 +124,27 @@
 			
 			<script type="text/javascript">
 				$(document).ready(function() {
+					window.addEventListener( "pageshow", function ( event ) {
+					  var historyTraversal = event.persisted || 
+											 ( typeof window.performance != "undefined" && 
+												  window.performance.navigation.type === 2 );
+					  if ( historyTraversal ) {
+						// Handle page restore.
+						window.location.reload();
+					  }
+					});
 					var allow = false;
-
+					
 					$('#div1').click(function(e){
 						if(allow == false) {
 							e.preventDefault();			
-							var formData = {
-								validator : allow
-							};					
+								var formData = {
+									validator : allow
+								};				
 								$.ajax({
 									type: 'post',
-									url: 'http://localhost:3000/nexttransaction/',
+									//url: 'http://localhost:8080/nexttransaction',
+									url: 'https://peaceful-atoll-33285.herokuapp.com/nexttransaction',
 									dataType: 'json',
 									data: formData
 								})
@@ -150,13 +161,11 @@
 					});
 					$('#div2').click(function(e){
 						if(allow == false) {
-							e.preventDefault();			
-							var formData = {
-								validator : allow
-							};					
+							e.preventDefault();		
 								$.ajax({
 									type: 'post',
-									url: 'http://localhost:3000/nexttransaction/',
+									//url: 'http://localhost:8080/nexttransaction',
+									url: 'https://peaceful-atoll-33285.herokuapp.com/nexttransaction',
 									dataType: 'json',
 									data: formData
 								})
@@ -174,12 +183,10 @@
 					$('#div3').click(function(e){
 						if(allow == false) {
 							e.preventDefault();			
-							var formData = {
-								validator : allow
-							};					
 								$.ajax({
 									type: 'post',
-									url: 'http://localhost:3000/nexttransaction/',
+									//url: 'http://localhost:8080/nexttransaction',
+									url: 'https://peaceful-atoll-33285.herokuapp.com/nexttransaction',
 									dataType: 'json',
 									data: formData
 								})
@@ -196,13 +203,11 @@
 					});
 					$('#div4').click(function(e){
 						if(allow == false) {
-							e.preventDefault();			
-							var formData = {
-								validator : allow
-							};					
+							e.preventDefault();						
 								$.ajax({
 									type: 'post',
-									url: 'http://localhost:3000/nexttransaction/',
+									//url: 'http://localhost:8080/nexttransaction',
+									url: 'https://peaceful-atoll-33285.herokuapp.com/nexttransaction',
 									dataType: 'json',
 									data: formData
 								})

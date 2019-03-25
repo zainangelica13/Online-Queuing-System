@@ -8,6 +8,7 @@
 	<head>
 		<title>Q-STI</title>
 		<meta charset="utf-8" />
+		<link rel="shortcut icon" href="images/sti.png">
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/webrtc-adapter/3.3.3/adapter.min.js"></script>
@@ -78,8 +79,8 @@
 						</div>
 						<nav>
 							<ul>
-								<li><a href="#join">Join</a></li>
-								<li><a id="a1" href="/back">Cancel</a></li>
+								<li><a href="#join" target="_parent">Join</a></li>
+								<li><a id="a1" href="/back" target="_parent">Cancel</a></li>
 							</ul>
 						</nav>
 					</header>
@@ -121,7 +122,7 @@
 
 				<!-- Footer -->
 					<footer id="footer">
-						<p class="copyright">&copy; Untitled. Design: <a href="https://html5up.net">STI STUDENTS</a>.</p>
+						<p class="copyright">&copy; Untitled. Design: <span>STI STUDENTS</span>.</p>
 					</footer>
 
 			</div>
@@ -161,8 +162,17 @@
 			
 			<script type="text/javascript">
 			$(document).ready(function() {
+				window.addEventListener( "pageshow", function ( event ) {
+				  var historyTraversal = event.persisted || 
+										 ( typeof window.performance != "undefined" && 
+											  window.performance.navigation.type === 2 );
+				  if ( historyTraversal ) {
+					// Handle page restore.
+					window.location.reload();
+				  }
+				});
 				var allow = false;
-
+				
 				$('#sbt').click(function(e){
 					if(allow == false) {
 						e.preventDefault();			
@@ -176,28 +186,32 @@
 							<% if (rel == "Cashier") { %>
 								$.ajax({
 									type: 'post',
-									url: 'http://localhost:3000/cashier/',
+									url: 'https://peaceful-atoll-33285.herokuapp.com/cashier',
+									//url: 'http://localhost:8080/cashier',
 									dataType: 'json',
 									data: formData
 								})
 							<% } else if (rel == "Enrollment") { %>
 								$.ajax({
 									type: 'post',
-									url: 'http://localhost:3000/enrollment/',
+									url: 'https://peaceful-atoll-33285.herokuapp.com/enrollment',
+									//url: 'http://localhost:8080/enrollment',
 									dataType: 'json',
 									data: formData
 								})
 							<% } else if (rel == "Registrar") { %>
 								$.ajax({
 									type: 'post',
-									url: 'http://localhost:3000/registrar/',
+									url: 'https://peaceful-atoll-33285.herokuapp.com/registrar',
+									//url: 'http://localhost:8080/registrar',
 									dataType: 'json',
 									data: formData
 								})
 							<% } else { %>
 								$.ajax({
 									type: 'post',
-									url: 'http://localhost:3000/proware/',
+									url: 'https://peaceful-atoll-33285.herokuapp.com/proware',
+									//url: 'http://localhost:8080/proware',
 									dataType: 'json',
 									data: formData
 								})
@@ -209,6 +223,7 @@
 									allow = data.allow;
 									$('#sbt').click();
 								}
+								swal ( "Congrats" ,  "Scan Successfully!" ,  "success" )
 							})
 							.fail(function(jqXHR, textStatus, err) {
 								swal ( "Oops" ,  "Error" ,  "error" )

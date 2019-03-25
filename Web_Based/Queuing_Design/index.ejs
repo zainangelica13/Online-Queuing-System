@@ -2,6 +2,7 @@
 <html>
 	<head>
 		<title>Online Queuing System</title>
+		<link rel="shortcut icon" href="images/sti.png">
 		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 		<meta name="description" content="" />
 		<meta name="keywords" content="" />
@@ -34,7 +35,22 @@
 
 		<!-- Header -->
 			<header id="header" class="skel-layers-fixed">
-				<h1><a href="#"> <img src="sti.png" alt="STI College Icon" style="height:44px"> </a></h1> <br>
+				<a href="#" style="margin-left:18px;"><img src="sti.png" alt="STI College Icon" style="height:44px"></a> 
+				<h1 id="user_level" style="margin-left: 75px;color:#014e92;font-size: 25px;letter-spacing: 1px"></h1>
+				<script type="text/javascript">
+					$.ajax({
+						type: 'get',
+						url: 'https://radiant-springs-10753.herokuapp.com/user_level',
+						dataType: 'json'
+					})
+					.done(function(data) {
+						$("#user_level").html(data.user);
+					})
+					.fail(function(jqXHR, textStatus, err) {
+						console.log('AJAX error response:', err);
+					});
+				</script>
+				<br>
 				<nav id="nav">
 					<ul>
 						<li><a href="/">Home</a></li>
