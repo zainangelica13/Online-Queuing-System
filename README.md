@@ -91,6 +91,6 @@ This queue line module is the center of the web application, all of the entry fr
 
 Slot reservation are used by the students/guests if they want to have a slot for the queue of the day they scheduled so when they go to the school they have their queue number and join in the queue line. The first textbox is the calendar which you can choose their dates when they want to schedule and the second is select a counter to join in the queue line. This module shows the available slot and the reserved slot. 
 
-##The link of website is here:
+## The link of website is here:
 https://peaceful-atoll-33285.herokuapp.com
 https://radiant-springs-10753.herokuapp.com
